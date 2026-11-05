@@ -33,7 +33,7 @@ export function initLogbook(section, { reduced }) {
       while (next < frames.length) {
         const i = next++;
         const img = new Image();
-        img.src = BASE + frames[i].f;
+        img.src = window.__FRAMES?.[frames[i].f] ?? BASE + frames[i].f; // single-file preview embeds the frames (tools/make-preview.mjs)
         try { await img.decode(); imgs[i] = img; if (i === 0 || Math.abs(i - lastIndex) < 3) draw(want); } catch { /* a missing frame falls back to its neighbour */ }
       }
     };
