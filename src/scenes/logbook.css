@@ -1,0 +1,22 @@
+/* Logbook scene: the real app, captured frame by frame, drawn to a canvas that follows the scroll. Navy palette is the app's own. */
+[data-scene="logbook"] [data-device] { width: 100%; height: min(calc(100svh - 150px), 780px); display: flex; align-items: center; justify-content: center; gap: clamp(32px, 6vw, 88px); }
+.lb-phone {
+  position: relative; height: 100%; aspect-ratio: 440 / 929; flex: none; padding: 10px;
+  border-radius: 44px; background: #05080f; box-shadow: 0 0 0 2px #26314a inset, 0 40px 80px rgba(0, 0, 0, 0.5);
+}
+.lb-phone canvas { display: block; width: 100%; height: 100%; border-radius: 34px; background: #0e1420; }
+.lb-chapters { position: relative; list-style: none; margin: 0; padding: 0 0 0 28px; display: grid; gap: 30px; max-width: 250px; font: 400 1rem/1.35 var(--font-body); }
+.lb-chapters::before { content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: color-mix(in srgb, var(--scene-fg) 20%, transparent); }
+.lb-chapters li { position: relative; color: var(--scene-fg); }
+.lb-chapters li::before { content: ""; position: absolute; left: -29px; top: 0.45em; width: 12px; height: 12px; border-radius: 50%; background: var(--scene-bg); border: 2px solid color-mix(in srgb, var(--scene-fg) 45%, transparent); }
+.lb-chapters .on-dot { position: absolute; left: -29px; top: 0.45em; width: 12px; height: 12px; border-radius: 50%; background: var(--scene-accent); border: 2px solid var(--scene-accent); opacity: 0; }
+.lb-chapters b { display: block; font: 700 1.05rem var(--font-display); font-stretch: 112%; }
+.lb-chapters span { display: block; margin-top: 0.15rem; color: var(--scene-fg-2); font-size: 0.9rem; }
+
+@media (max-width: 820px) {
+  [data-scene="logbook"] [data-device] { height: 100%; }
+  [data-scene="logbook"] .device-wrap { align-content: stretch; grid-template-rows: minmax(0, 1fr); }
+  .lb-chapters { display: none; }
+  .lb-phone { padding: 6px; border-radius: 32px; }
+  .lb-phone canvas { border-radius: 26px; }
+}
