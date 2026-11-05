@@ -100,7 +100,7 @@ a:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-ra
   z-index: 1;
 }
 #neatink { --scene-bg: #141b52; --scene-fg: #eceeff; --scene-fg-2: #b4bae6; --scene-accent: #bbc3ff; --btn-bg: #bbc3ff; --btn-fg: #141b52; }
-#pigeon  { --scene-bg: #1c1c1c; --scene-fg: #ececec; --scene-fg-2: #aeb8ae; --scene-accent: #ffb74d; --btn-bg: #ffb74d; --btn-fg: #1c1c1c; }
+#pigeon  { --scene-bg: #171511; --scene-fg: #efeadf; --scene-fg-2: #b9ae96; --scene-accent: #df9c20; --btn-bg: #df9c20; --btn-fg: #171511; }
 #logbook { --scene-bg: #0e1420; --scene-fg: #e7eaf0; --scene-fg-2: #aab3c3; --scene-accent: #9db8f5; --btn-bg: #9db8f5; --btn-fg: #0e1420; }
 .scene a:focus-visible { outline-color: var(--scene-accent); }
 
