@@ -2,6 +2,7 @@ import { gsap } from 'gsap';
 
 const WIDE = 150; // Anybody's widest width axis; the name rests here and fills the line
 const NARROW = 50;
+const PINCH = 104; // how narrow letters get under the pointer; lower than this the heavy weight fuses neighbours
 
 // The hero's one orchestrated moment: the name opens from condensed to wide, then a pointer pinches nearby letters.
 export function initHero({ reduced }) {
@@ -69,7 +70,7 @@ export function initHero({ reduced }) {
       chars.forEach((c, i) => {
         const dx = origin.left + rest[i].x - px;
         const dy = origin.top + rest[i].y - py;
-        const target = active ? WIDE - (WIDE - NARROW) * Math.exp(-(dx * dx + dy * dy) / s2) : WIDE;
+        const target = active ? WIDE - (WIDE - PINCH) * Math.exp(-(dx * dx + dy * dy) / s2) : WIDE;
         const next = cur[i] + (target - cur[i]) * 0.2;
         if (Math.abs(next - cur[i]) > 0.05) moving = true;
         cur[i] = next;

@@ -117,7 +117,7 @@ export function initPigeon(section, { reduced }) {
 
   // --- camera: desktop shows the whole stage; phones zoom and pan ---
   const cam = { fx: 500, fy: 380, z: 1 };
-  const narrow = () => matchMedia('(max-width: 820px)').matches;
+  const narrow = () => !reduced && matchMedia('(max-width: 820px)').matches; // reduced motion shows the whole device, no camera
   const fit = (focus, size, view) => (view >= size ? (size - view) / 2 : Math.max(0, Math.min(size - view, focus - view / 2)));
   function placeCam() {
     if (!narrow()) { stage.style.transform = `scale(${frame.clientWidth / 1000})`; return; }
@@ -277,5 +277,5 @@ export function initPigeon(section, { reduced }) {
 
   tl.eventCallback('onUpdate', placeCam);
   ScrollTrigger.addEventListener('refresh', placeCam);
-  pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.78], [0.78, 1.03]], poster: 0.65, reduced });
+  pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.78], [0.78, 1.03]], poster: 0.625, reduced });
 }

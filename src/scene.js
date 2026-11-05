@@ -32,6 +32,7 @@ export function pinScene(section, tl, { length = 5, hold = 0, captions = [], pos
 
   if (reduced) {
     tl.progress(poster).pause();
+    gsap.set(items, { clearProps: 'opacity,visibility,transform' }); // nothing animates, so every caption just shows
     return;
   }
 

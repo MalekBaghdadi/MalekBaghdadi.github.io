@@ -157,7 +157,7 @@ export function initNeatInk(section, { reduced }) {
   // --- camera: desktop shows the whole tablet; phones get a window that zooms and pans per beat ---
   const pen = { x: 1100, y: 740 };
   const cam = { fx: 560, fy: 360, z: 1.25, w: 1 }; // focus x/y (screen px), zoom, and how much the window follows the pen's x
-  const narrow = () => matchMedia('(max-width: 820px)').matches;
+  const narrow = () => !reduced && matchMedia('(max-width: 820px)').matches; // reduced motion shows the whole device, no camera
   function placeCam() {
     if (!narrow()) { bezel.style.transform = `scale(${frame.clientWidth / 1328})`; return; }
     const s = (frame.clientHeight / 848) * cam.z;
@@ -359,5 +359,5 @@ export function initNeatInk(section, { reduced }) {
   tl.eventCallback('onUpdate', placeCam); // after every tween has rendered, whatever order a rewind visited them in
   ScrollTrigger.addEventListener('refresh', placeCam); // refresh renders the timeline to its end and back with events muted
   placeCam();
-  pinScene(section, tl, { length: 10, hold: 0.03, captions: [[0, 0.27], [0.27, 1.03]], poster: 0.7, reduced });
+  pinScene(section, tl, { length: 10, hold: 0.03, captions: [[0, 0.27], [0.27, 1.03]], poster: 0.585, reduced });
 }
