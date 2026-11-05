@@ -1,0 +1,112 @@
+/* NeatInk scene. Everything inside .ni-bezel is laid out in a 1328x848 design space (1280x800 screen + 24px bezel)
+   and scaled by --k, so the tablet UI keeps its real proportions at any width. Colours are the app's Material 3 scheme (seed 2F3C8C). */
+[data-scene="neatink"] [data-device] { width: min(100%, calc((100svh - 150px) * 1.566), 1180px); margin-inline: auto; }
+.ni-frame { position: relative; width: 100%; aspect-ratio: 1328 / 848; }
+.ni-bezel {
+  position: absolute; left: 0; top: 0; width: 1328px; height: 848px;
+  transform-origin: 0 0; transform: scale(var(--k, 0.5));
+  background: #0c0c11; border-radius: 40px;
+  box-shadow: 0 0 0 2px #2b2b36 inset, 0 50px 90px rgba(0, 0, 0, 0.5);
+}
+.ni-view {
+  position: absolute; left: 24px; top: 24px; width: 1280px; height: 800px; overflow: hidden; border-radius: 16px;
+  background: #fffbff; color: #1b1b1f; font-family: Roboto, system-ui, sans-serif; font-size: 16px; line-height: 1.25;
+  text-align: left; letter-spacing: 0;
+}
+.ni-view * { box-sizing: border-box; }
+.ni-i { fill: currentColor; flex: none; }
+
+.ni-status { position: absolute; inset: 0 0 auto 0; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-size: 13px; font-weight: 500; background: #fffbff; }
+.ni-status span { display: flex; align-items: center; gap: 10px; }
+
+.ni-appbar { position: absolute; inset: 28px 0 auto 0; height: 64px; display: flex; align-items: center; padding: 0 16px 0 8px; background: #fffbff; }
+.ni-appbar .ni-title { position: relative; flex: 1; margin-left: 4px; height: 28px; font-size: 22px; font-weight: 600; }
+.ni-title b { position: absolute; left: 0; top: 0; font-weight: 600; white-space: nowrap; }
+.ni-icbtn { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: #46464f; }
+.ni-icbtn.ni-dim { color: #b9b7c0; }
+.ni-convert { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px 0 16px; margin: 0 8px; border-radius: 20px; background: #e0e1f9; color: #181a2c; font-weight: 600; letter-spacing: 0.2px; }
+
+.ni-tools { position: absolute; inset: 92px 0 auto 0; height: 56px; display: flex; align-items: center; gap: 4px; padding: 0 16px; background: #fffbff; border-bottom: 1px solid rgba(199, 197, 208, 0.7); }
+.ni-tool { width: 44px; height: 40px; display: grid; place-items: center; border-radius: 14px; color: #46464f; }
+.ni-tool.on { background: #dee0ff; color: #000e5e; }
+.ni-sep { width: 1px; height: 28px; margin: 0 12px; background: #c7c5d0; }
+.ni-dot { width: 26px; height: 26px; border-radius: 50%; margin: 0 5px; }
+.ni-dot.on { box-shadow: 0 0 0 3px #fffbff, 0 0 0 5px #4b57a9; }
+.ni-wd { width: 54px; display: grid; place-items: center; }
+.ni-wd i { display: block; width: 34px; border-radius: 4px; background: #46464f; }
+.ni-auto { margin-left: auto; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #767680; color: #46464f; font-weight: 500; }
+
+.ni-pagearea { position: absolute; inset: 148px 0 0 0; background: #e4e1e6; overflow: hidden; }
+.ni-page {
+  position: absolute; left: 200px; top: 16px; width: 880px; height: 780px; background-color: #fbf5e6;
+  background-image: linear-gradient(#d3d9e8 1.5px, transparent 1.5px); background-size: 100% 38px; background-position: 0 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.ni-page::before { content: ""; position: absolute; left: 44px; top: 0; bottom: 0; width: 1.5px; background: rgba(214, 120, 130, 0.35); }
+.ni-page svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.ni-pdf { background: #fff; background-image: none; }
+.ni-pdf::before { display: none; }
+.ni-pdf .ln { position: absolute; left: 90px; width: 640px; font: 400 17px / 28px Lora, Georgia, serif; color: #26262b; white-space: nowrap; }
+.ni-pdf .h { font: 600 30px / 40px Lora, Georgia, serif; color: #111; }
+.ni-hl { position: absolute; left: 86px; height: 28px; width: 0; background: rgba(255, 224, 66, 0.55); mix-blend-mode: multiply; border-radius: 3px; }
+
+.ni-sbar {
+  position: absolute; left: 280px; top: 36px; display: flex; align-items: center; gap: 6px; height: 52px; padding: 0 12px;
+  border-radius: 26px; background: #f0edf1; box-shadow: 0 3px 14px rgba(0, 0, 0, 0.22); font-weight: 500; color: #1b1b1f;
+}
+.ni-sbar .ni-font { position: relative; width: 110px; height: 22px; }
+.ni-sbar .ni-font b { position: absolute; left: 0; top: 0; font-weight: 500; font-size: 16px; }
+.ni-sbar .ni-font b:nth-child(1) { font-family: Lexend; } .ni-sbar .ni-font b:nth-child(2) { font-family: Lora, serif; } .ni-sbar .ni-font b:nth-child(3) { font-family: Caveat, cursive; font-size: 20px; }
+.ni-sbar .ni-chipb { height: 34px; padding: 0 12px; display: grid; place-items: center; border-radius: 12px; background: #e0e1f9; }
+.ni-selbox { position: absolute; border: 2px dashed #4b57a9; border-radius: 6px; }
+.ni-selbox::before, .ni-selbox::after { content: ""; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #4b57a9; border: 2px solid #fffbff; }
+.ni-selbox::before { left: -8px; top: -8px; } .ni-selbox::after { right: -8px; bottom: -8px; }
+
+.ni-scrim { position: absolute; inset: 0; background: rgba(15, 12, 30, 0.34); }
+.ni-sheet { position: absolute; left: 320px; top: 260px; width: 640px; height: 540px; border-radius: 28px 28px 0 0; background: #f6f2f7; box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.25); }
+.ni-handle { position: absolute; left: 304px; top: 12px; width: 32px; height: 4px; border-radius: 2px; background: #c7c5d0; }
+.ni-sh-head { position: absolute; left: 24px; right: 12px; top: 26px; height: 48px; display: flex; align-items: center; justify-content: space-between; font-size: 22px; font-weight: 600; }
+.ni-seg { position: absolute; left: 24px; top: 84px; display: flex; height: 40px; border: 1px solid #767680; border-radius: 20px; overflow: hidden; font-size: 14px; font-weight: 500; }
+.ni-seg span { display: flex; align-items: center; gap: 6px; padding: 0 20px; }
+.ni-seg span.on { background: #e0e1f9; color: #181a2c; }
+.ni-seg span + span { border-left: 1px solid #767680; }
+.ni-sh-body { position: absolute; left: 24px; right: 24px; top: 140px; bottom: 0; }
+.ni-reading, .ni-review { position: absolute; inset: 0; }
+.ni-reading { padding-top: 20px; font-size: 16px; color: #46464f; }
+.ni-bar { margin-top: 16px; height: 4px; border-radius: 2px; background: #e0e1f9; overflow: hidden; }
+.ni-bar i { display: block; height: 100%; width: 100%; background: #4b57a9; transform-origin: 0 50%; transform: scaleX(0); }
+.ni-rv-top { display: flex; align-items: center; justify-content: space-between; height: 40px; font-size: 14px; font-weight: 600; letter-spacing: 0.2px; }
+.ni-fixall { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 18px; color: #4b57a9; font-size: 14px; font-weight: 600; }
+.ni-pg { margin: 6px 0 8px; font-size: 14px; font-weight: 600; color: #46464f; }
+.ni-row { position: relative; display: flex; align-items: center; justify-content: space-between; height: 54px; margin-bottom: 8px; padding: 0 16px; border-radius: 14px; background: rgba(224, 224, 232, 0.6); font-size: 17px; }
+.ni-row .a, .ni-row .b { white-space: nowrap; }
+.ni-row .b { position: absolute; left: 16px; top: 50%; translate: 0 -50%; }
+.ni-row u { text-decoration: underline dotted #e08a00; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.ni-chip { font-style: normal; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 10px; white-space: nowrap; }
+.ni-chip.pend { background: #ffdea8; color: #3a2800; }
+.ni-chip.fixed { position: absolute; right: 12px; top: 50%; translate: 0 -50%; background: #cdeacd; color: #0c3a14; }
+.ni-ctl { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; }
+.ni-drop { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 8px 0 14px; border-radius: 12px; background: rgba(224, 224, 232, 0.6); }
+.ni-drop b { font: 500 15px Lexend; }
+.ni-tgl { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid #c7c5d0; font-weight: 500; }
+.ni-act { position: absolute; left: 0; right: 0; bottom: 28px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.ni-act .ni-text { padding: 0 16px; font-weight: 600; color: #4b57a9; }
+.ni-act .ni-btn { height: 48px; padding: 0 28px; display: grid; place-items: center; border-radius: 24px; background: #4b57a9; color: #fff; font-weight: 600; letter-spacing: 0.2px; }
+
+.ni-menu { position: absolute; right: 20px; top: 88px; width: 210px; padding: 8px 0; border-radius: 14px; background: #f0edf1; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28); }
+.ni-menu div { height: 46px; display: flex; align-items: center; padding: 0 18px; font-size: 16px; }
+.ni-menu div.hot { background: #dee0ff; }
+.ni-snack { position: absolute; left: 50%; bottom: 28px; translate: -50% 0; display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-radius: 14px; background: #303034; color: #f2f0f4; font-size: 15px; }
+.ni-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.3); border-top-color: #bbc3ff; }
+.ni-ripple { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: rgba(75, 87, 169, 0.4); pointer-events: none; opacity: 0; }
+.ni-penlayer { position: absolute; inset: 0; width: 1280px; height: 800px; pointer-events: none; overflow: visible; }
+
+@media (max-width: 820px) {
+  [data-scene="neatink"] [data-device] { width: 100%; }
+}
+
+@media (max-width: 820px) {
+  [data-scene="neatink"] [data-device] { height: 100%; }
+  [data-scene="neatink"] .device-wrap { align-content: stretch; grid-template-rows: minmax(0, 1fr); }
+  .ni-frame { aspect-ratio: auto; height: 100%; overflow: hidden; border-radius: 18px; }
+}

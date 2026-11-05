@@ -1,0 +1,21 @@
+// Is the page still changing after a scroll settles? Two shots, no input between them.
+import puppeteer from 'puppeteer-core';
+import sharp from 'sharp';
+const [w, h, scene, p] = process.argv.slice(2);
+const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
+const pg = await b.newPage();
+await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+await pg.setViewport({ width: +w, height: +h });
+await pg.goto('http://localhost:5199/', { waitUntil: 'networkidle0' });
+await new Promise((r) => setTimeout(r, 2000));
+const r = await pg.evaluate((id) => { const s = document.getElementById(id), sp = s.querySelector('.pin-spacer'); return { top: s.getBoundingClientRect().top + scrollY, dist: sp.getBoundingClientRect().height - innerHeight }; }, scene);
+console.log('start', r.top, 'dist', r.dist, 'target', r.top + p * r.dist);
+await pg.evaluate((y) => scrollTo(0, y), r.top + p * r.dist);
+await new Promise((x) => setTimeout(x, 3500));
+const a = await pg.screenshot(), sy1 = await pg.evaluate(() => scrollY);
+await new Promise((x) => setTimeout(x, 1500));
+const c = await pg.screenshot(), sy2 = await pg.evaluate(() => scrollY);
+const [A, B] = [await sharp(a).raw().toBuffer(), await sharp(c).raw().toBuffer()];
+let n = 0; for (let i = 0; i < A.length; i++) if (Math.abs(A[i] - B[i]) > 3) n++;
+console.log('scrollY', sy1, sy2, n ? n + ' bytes differ between consecutive shots (still moving)' : 'frame is stable');
+await b.close();
