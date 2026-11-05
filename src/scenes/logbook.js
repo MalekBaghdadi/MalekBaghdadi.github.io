@@ -84,5 +84,5 @@ export function initLogbook(section, { reduced }) {
   });
 
   if (reduced) load(); // the still needs its frame without waiting to scroll near
-  pinScene(section, tl, { length: 8, hold: 0.03, captions: [[0, 0.3], [0.3, 1.03]], poster: 0.5, reduced });
+  pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.3], [0.3, 1.03]], poster: 0.515, reduced, stacked: true });
 }

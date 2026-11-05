@@ -277,5 +277,5 @@ export function initPigeon(section, { reduced }) {
 
   tl.eventCallback('onUpdate', placeCam);
   ScrollTrigger.addEventListener('refresh', placeCam);
-  pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.78], [0.78, 1.03]], poster: 0.625, reduced });
+  pinScene(section, tl, { length: 10, hold: 0.03, captions: [[0, 0.78], [0.78, 1.03]], poster: 0.644, reduced, stacked: true });
 }

@@ -120,15 +120,26 @@ function build() {
 }
 
 // Tracks which strokes are drawn at time t (0..1 over the whole group) and where the pen tip is.
+// Only the stroke being written uses its reveal mask: unwritten strokes are hidden and finished ones drawn plainly,
+// so the page is cheap to paint (146 live masks made the first paint of this scene stall).
 function inkPlayer(strokes, root) {
   const paths = [...root.querySelectorAll('mask path')];
+  const fills = [...root.querySelectorAll('path[mask]')];
+  const masks = fills.map((el) => el.getAttribute('mask'));
   const last = paths.map(() => -1);
   const geo = paths.map((p, i) => ({ a: p.getPointAtLength(0), b: p.getPointAtLength(strokes[i].len) }));
-  return {
+  const player = {
     set(t) {
       strokes.forEach((s, i) => {
         const f = t <= s.t0 ? 0 : t >= s.t1 ? 1 : (t - s.t0) / (s.t1 - s.t0);
-        if (f !== last[i]) { last[i] = f; paths[i].style.strokeDashoffset = (s.len + 2) * (1 - f); }
+        if (f === last[i]) return;
+        last[i] = f;
+        const el = fills[i];
+        if (f <= 0) { el.style.visibility = 'hidden'; return; }
+        el.style.visibility = '';
+        if (f >= 1) { el.removeAttribute('mask'); return; }
+        el.setAttribute('mask', masks[i]);
+        paths[i].style.strokeDashoffset = (s.len + 2) * (1 - f);
       });
     },
     head(t) {
@@ -143,6 +154,8 @@ function inkPlayer(strokes, root) {
     end: () => geo[geo.length - 1].b,
     start: () => geo[0].a,
   };
+  player.set(0); // nothing written yet
+  return player;
 }
 
 export function initNeatInk(section, { reduced }) {
@@ -359,5 +372,5 @@ export function initNeatInk(section, { reduced }) {
   tl.eventCallback('onUpdate', placeCam); // after every tween has rendered, whatever order a rewind visited them in
   ScrollTrigger.addEventListener('refresh', placeCam); // refresh renders the timeline to its end and back with events muted
   placeCam();
-  pinScene(section, tl, { length: 10, hold: 0.03, captions: [[0, 0.27], [0.27, 1.03]], poster: 0.585, reduced });
+  pinScene(section, tl, { length: 11, hold: 0.03, captions: [[0, 0.27], [0.27, 1.03]], poster: 0.603, reduced, stacked: true });
 }

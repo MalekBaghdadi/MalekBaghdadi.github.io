@@ -127,3 +127,19 @@ The live URL is the main link. None of Malek's real entries or any user's data i
 
 A CV PDF download, a contact form, dark/light toggle, analytics, a blog, an offline service worker (the "works offline" line is
 about the apps, so the page does not claim it). Any of these can be added later.
+
+## 8. Revision 2 (2026-11-06): the motion actually shows, and more of it
+
+- **Root cause of "there is no animation":** Windows "Animation effects" is off on Malek's PC, so Chrome reports
+  `prefers-reduced-motion: reduce`, and the site switched to its still version. Motion no longer follows the OS flag;
+  the page has its own "Reduce motion" button (localStorage) instead.
+- **Smooth scroll:** Lenis on wheel/trackpad, synced to ScrollTrigger; touch stays native.
+- **Hero as a pinned scene (3.4 screens):** live Beirut clock and signal bars that connect on load; on scroll a
+  highlighter runs under the thesis, the bars drop to "No connection", the name squeezes and lifts away, the three
+  apps (real screens from the scenes and the Logbook capture, `tools/hero-shots.mjs`) rise out of the page, tilted
+  back, and light up under "All three work without a connection."
+- **Chapters stack:** each section overlaps the previous one's last screen and slides over it as a rounded card while
+  the old stage is pushed back and dimmed. No empty scroll between chapters.
+- **Shared scene moves:** device stands up on entry, title opens on the width axis, caption words light up as read.
+- **CV sections:** headings open on the width axis, entries rise, the work timeline draws, a two-row skills marquee
+  slides with the scroll, the contact card grows to full width. All scrubbed and reversible.

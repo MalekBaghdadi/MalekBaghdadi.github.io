@@ -16,6 +16,22 @@ npm run preview    # serve the production build
 
 Vite, plain JavaScript modules, GSAP (ScrollTrigger). No framework. All CV text is real HTML in `index.html`.
 
+## Motion
+
+Everything that moves is tied to the scroll position (GSAP ScrollTrigger, smoothed by Lenis on wheel and trackpad;
+touch keeps native scrolling), so stopping stops it and scrolling up plays it backwards. Motion is on unless a
+visitor presses the page's own **Reduce motion** button (remembered in `localStorage`); the OS
+`prefers-reduced-motion` flag is deliberately not used, because Windows often reports it with "Animation effects"
+switched off by accident, and that silently turned every demo into a still on Malek's PC.
+
+- `src/hero.js`: the opening. A highlighter runs under the thesis, the signal bars drop to "No connection", the name
+  squeezes and lifts away, the three apps rise out of the page and light up ("All three work without a connection.").
+- `src/scene.js`: shared by the three demos. The device stands up out of the page as a scene arrives, the title opens to
+  full width, caption words light up as you read, and each chapter slides over the previous one like a card while the
+  old one is pushed back and dimmed (sections overlap by one screen: `margin-top: -100svh`).
+- `src/sections.js`: the CV sections. Headings open to full width, entries rise into place, the work timeline draws
+  itself, the skills marquee slides with the scroll, the contact card grows to full width.
+
 ## How the scenes work
 
 Each scene (`src/scenes/*.js`) builds its own markup and one GSAP timeline whose progress is the scroll position
@@ -34,6 +50,8 @@ NeatInk and Pigeon are labelled on the page as walkthroughs, not screen recordin
 ```bash
 node tools/make-ink.mjs        # NeatInk handwriting -> src/scenes/neatink-ink.json
 node tools/lb/capture.mjs      # Logbook frames -> public/logbook/ + src/scenes/logbook-manifest.json
+node tools/hero-shots.mjs      # the hero's three screens -> public/hero/ (dev server on :5199)
+node tools/make-preview.mjs    # the whole site as one inline html file -> artifact/site.html
 ```
 
 `capture.mjs` needs Java and `firebase-tools` (via `npx`), and expects the Logbook repo at `C:/Users/Malek Baghdadi/personal-tracker`
@@ -48,9 +66,10 @@ With `npm run dev -- --port 5199` running:
 node tools/shoot.mjs <label> <w> <h> <neatink|pigeon|logbook> 0,0.3,0.6,1   # screenshots + proves reverse playback matches
 node tools/at.mjs <label> <w> <h> top@1 neatink@0@-0.55 experience@0       # the seams between sections
 node tools/perf.mjs 390 844 neatink --cpu=4                                 # frame times while scrolling a scene
+node tools/wheel.mjs                                                        # real wheel scrolling + the demos link
 ```
 
-These use the system Chrome with motion on (headless Chrome here reports reduced motion otherwise).
+`shoot.mjs` and `at.mjs` take `--motion=off` to check the still version. They use the system Chrome.
 
 ## Deploy
 

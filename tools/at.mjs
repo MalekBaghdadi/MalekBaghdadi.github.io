@@ -14,7 +14,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const mobile = +w < 700;
 const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
 const p = await b.newPage();
-await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: opt.reduce ? 'reduce' : 'no-preference' }]);
+if (opt.motion === 'off') await p.evaluateOnNewDocument(() => localStorage.setItem('motion', 'off')); // the page's own switch
 await p.setViewport({ width: +w, height: +h, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile });
 const errors = [];
 p.on('pageerror', (e) => errors.push(e.message));

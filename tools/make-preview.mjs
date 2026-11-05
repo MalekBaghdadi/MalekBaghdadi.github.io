@@ -12,6 +12,9 @@ const html = readFileSync('artifact/build/index.html', 'utf8');
 const css = readFileSync('artifact/build/' + /href="\.\/(assets\/[^"]+\.css)"/.exec(html)[1], 'utf8');
 const js = readFileSync('artifact/build/' + /src="\.\/(assets\/[^"]+\.js)"/.exec(html)[1], 'utf8').replaceAll('</script', '<\\/script');
 const body = /<body>([\s\S]*)<\/body>/.exec(html)[1];
+// the hero's device images, as data URIs too
+const heroImg = (m, name) => `src="data:image/webp;base64,${readFileSync(`public/hero/${name}.webp`).toString('base64')}"`;
+const bodyInline = body.replace(/src="(?:\.?\/)?hero\/([a-z]+)\.webp"/g, heroImg);
 
 const frames = {};
 for (const f of readdirSync('public/logbook')) if (f.endsWith('.webp')) frames[f] = 'data:image/webp;base64,' + readFileSync('public/logbook/' + f).toString('base64');
@@ -19,7 +22,7 @@ for (const f of readdirSync('public/logbook')) if (f.endsWith('.webp')) frames[f
 const page = `<title>Malek Baghdadi Portfolio</title>
 <style>${css}</style>
 <script>document.documentElement.classList.add('js')</script>
-${body}
+${bodyInline}
 <script>window.__FRAMES=${JSON.stringify(frames)}</script>
 <script type="module">${js}</script>
 `;

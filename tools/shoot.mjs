@@ -21,7 +21,7 @@ const browser = await puppeteer.launch({
   args: ['--no-first-run', '--hide-scrollbars'],
 });
 const page = await browser.newPage();
-await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: opt.reduce ? 'reduce' : 'no-preference' }]);
+if (opt.motion === 'off') await page.evaluateOnNewDocument(() => localStorage.setItem('motion', 'off')); // the page's own switch
 await page.setViewport({ width: +w, height: +h, deviceScaleFactor: +(opt.dpr ?? 1), isMobile: mobile, hasTouch: mobile });
 const errors = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(m.type() + ': ' + m.text()); });
@@ -40,9 +40,11 @@ console.log('page', info, info.docW > info.vw ? 'HORIZONTAL SCROLL!' : 'no horiz
 async function range() {
   return page.evaluate((id) => {
     const sec = document.getElementById(id);
-    const sp = sec.querySelector('.pin-spacer');
+    const sp = sec.querySelector(':scope > .pin-spacer, :scope .pin-spacer');
     const top = sec.getBoundingClientRect().top + scrollY;
-    return { start: top, dist: (sp ? sp.getBoundingClientRect().height : sec.offsetHeight) - innerHeight };
+    if (sp) return { start: top, dist: sp.getBoundingClientRect().height - innerHeight };
+    // not pinned: from the moment it enters at the bottom until it leaves at the top
+    return { start: top - innerHeight, dist: sec.getBoundingClientRect().height + innerHeight };
   }, scene);
 }
 async function goto(y) {
