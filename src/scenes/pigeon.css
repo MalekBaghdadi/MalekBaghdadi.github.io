@@ -16,6 +16,9 @@
 .pg-pulse { fill: none; stroke: #df9c20; stroke-width: 2; opacity: 0; }
 .pg-body { fill: #2b2720; stroke: #5a5242; stroke-width: 2; }
 .pg-scr { fill: #f8f7f6; }
+.pg-ban { fill: #e57373; }
+.pg-flash { fill: #ffd9c2; }
+.pg-sleep { fill: #171511; }
 .pg-badge { fill: #e57373; }
 .pg-tk { fill: #e57373; stroke: #171511; stroke-width: 2; opacity: 0; }
 
@@ -96,7 +99,20 @@
    split so scroll and ambient loops never fight: GSAP drives a parent's opacity or scale, CSS loops a child. */
 .pc-box { position: absolute; left: 0; top: 0; width: 1600px; height: 340px; transform-origin: 0 0; }
 .pc-box > * { position: absolute; }
-.pc-sky-line { left: 0; top: 0; }
+.pc-sky-line, .pc-lights, .pc-phones { left: 0; top: 0; }
+/* the pigeons (pigeon-city.js places them): one wing pose at a time, legs only when sitting */
+.pc-bird { left: 0; top: 0; display: none; transform-origin: 12px 16px; }
+.pc-bird .w, .pc-bird .s { display: none; }
+.pc-bird[data-f="u"] .wu, .pc-bird[data-f="m"] .wm, .pc-bird[data-f="d"] .wd, .pc-bird[data-f="s"] .ws, .pc-bird[data-f="s"] .s { display: inline; }
+/* the street once the water has run down it, and the fire and the sirens reflected in it */
+.pc-wet { left: 0; top: 302px; width: 1600px; height: 38px; background: linear-gradient(180deg, rgba(150, 190, 235, 0.14), rgba(150, 190, 235, 0.02)); }
+.pc-refl { left: 100px; top: 301px; width: 280px; height: 40px; }
+.pc-refl b { position: absolute; inset: 0; background: radial-gradient(ellipse 50% 70% at 50% 0%, rgba(255, 140, 60, 0.36), rgba(255, 140, 60, 0)); transform-origin: 50% 0; animation-name: pc-glow; animation-duration: 0.9s; animation-direction: alternate; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.pc-siren-r { transform: scaleY(-0.42); } /* dimmer than the lights themselves: by their colours, since scroll owns the opacity */
+.pc-siren-r b:first-child { background: radial-gradient(ellipse, rgba(255, 77, 77, 0.2), rgba(255, 77, 77, 0) 62%); }
+.pc-siren-r b:last-child { background: radial-gradient(ellipse, rgba(111, 156, 255, 0.2), rgba(111, 156, 255, 0) 62%); }
+.pc-amb .pc-siren-r { top: 10px; }
+.pc-truck .pc-siren-r { top: 2px; }
 .pc-sky { position: absolute; inset: 0; }
 .pc-moon { position: absolute; left: 7%; top: 9%; width: 44px; height: 44px; }
 .pc-star { position: absolute; border-radius: 50%; background: #f3ecdc; opacity: 0.5; animation-name: pc-twinkle; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
@@ -153,7 +169,7 @@
 .reduced .pc-puff:nth-child(4), .still .pc-puff:nth-child(4) { transform: translate(100px, -240px) scale(2.2); opacity: 0.22; }
 
 /* phase gates (pigeon-city.js flags the city): a loop runs only while its part of the story is on screen */
-.pc-city:not([data-fire]) :is(.pc-flame, .pc-ember, .pc-glow),
+.pc-city:not([data-fire]) :is(.pc-flame, .pc-ember, .pc-glow, .pc-refl b),
 .pc-city:not([data-smoke]) .pc-puff,
 .pc-city:not([data-steam]) .pc-steamp,
 .pc-city:not([data-sirens]) .pc-siren b,

@@ -1,7 +1,8 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { splitChars } from './split.js';
+import { splitChars, splitWords } from './split.js';
 import { initRunner } from './runner.js';
+import { initFooterWaves } from './hero-waves.js';
 
 // The CV sections after the demos move with the scroll too, in the demos' language: headings that open to full
 // width, rules that draw themselves with a blue square riding the tip, entries that rise into place, a work timeline
@@ -18,6 +19,28 @@ export function initSections({ reduced }) {
   }
   for (const el of document.querySelectorAll('.entry, .skills dt, .skills dd')) {
     gsap.fromTo(el, { y: 64, opacity: 0.12 }, { y: 0, opacity: 1, ease: 'none', scrollTrigger: st(el, 'top 98%', 'top 68%') });
+  }
+  // Read along, as in the demos' captions: each line's words light up as it comes up the screen, and the hero's
+  // highlighter runs under each title as it reaches the middle.
+  for (const el of document.querySelectorAll('.entry li, .coursework')) {
+    gsap.fromTo(splitWords(el), { opacity: 0.22 }, { opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: st(el, 'top 90%', 'top 55%') });
+  }
+  for (const h of document.querySelectorAll('.entry h3')) {
+    const hl = document.createElement('span');
+    hl.className = 'hl';
+    hl.append(...h.childNodes);
+    h.append(hl);
+    gsap.fromTo(hl, { backgroundSize: '0% 36%' }, { backgroundSize: '100% 36%', ease: 'none', scrollTrigger: st(h, 'top 74%', 'top 50%') });
+  }
+  // Skills: each item on its own, one after another, like the marquee above them dropping them off
+  for (const dd of document.querySelectorAll('.skills dd')) {
+    const items = dd.textContent.split(', ');
+    dd.textContent = '';
+    items.forEach((t, i) => {
+      if (i) dd.append(' ');
+      dd.append(Object.assign(document.createElement('span'), { className: 'tok', textContent: t + (i < items.length - 1 ? ',' : '') }));
+    });
+    gsap.fromTo(dd.querySelectorAll('.tok'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: st(dd, 'top 94%', 'top 62%') });
   }
 
   // Each section's top rule draws itself left to right as it comes up, the marquee's blue square riding the tip.
@@ -55,6 +78,13 @@ export function initSections({ reduced }) {
     const turn = () => marquee.style.setProperty('--spin', `${spin.deg.toFixed(1)}deg`);
     gsap.fromTo(spin, { deg: 0 }, { deg: 540, ease: 'none', scrollTrigger: st(marquee, 'top bottom', 'bottom top'), onUpdate: turn });
     ScrollTrigger.addEventListener('refresh', turn); // a refresh renders with events muted
+    // The faster you scroll, the more the rows lean into the way they are going; they straighten up as you slow down,
+    // and stand straight when you stop.
+    const rows = [...marquee.querySelectorAll('.mq-row')];
+    const lean = rows.map((row) => gsap.quickTo(row, 'skewX', { duration: 0.45, ease: 'power3.out' }));
+    const set = (v) => lean.forEach((to, i) => to((i % 2 ? -1 : 1) * gsap.utils.clamp(-9, 9, v / 260)));
+    ScrollTrigger.create({ trigger: marquee, start: 'top bottom', end: 'bottom top', onUpdate: (self) => set(self.getVelocity()), onToggle: () => set(0) });
+    ScrollTrigger.addEventListener('scrollEnd', () => set(0));
   }
 
   initRunner(document.getElementById('games'));
@@ -69,10 +99,12 @@ export function initSections({ reduced }) {
     // the hero lost the connection; the page ends with it back: the bars rise one by one, then "Back online"
     const rc = contact.querySelector('.reconnect');
     if (rc) {
-      gsap.timeline({ scrollTrigger: st(contact, 'top 85%', 'bottom bottom') })
+      const back = gsap.timeline({ scrollTrigger: st(contact, 'top 85%', 'bottom bottom') })
         .fromTo(rc.querySelectorAll('rect'), { opacity: 0.2, scaleY: 0.4 }, { opacity: 1, scaleY: 1, transformOrigin: '50% 100%', ease: 'power1.out', stagger: 0.16, duration: 0.18 }, 0.1)
         .fromTo(rc.querySelector('.rc-off'), { opacity: 1 }, { opacity: 0, duration: 0.08 }, 0.86)
         .fromTo(rc.querySelector('.rc-on'), { opacity: 0 }, { opacity: 1, duration: 0.08 }, 0.86);
+      // ...and the hero's rings come back with it: the page ends as it began, the signal pulsing out of the bars
+      initFooterWaves(contact, rc.querySelector('svg'), back, 0.84);
     }
   }
 }

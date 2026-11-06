@@ -44,11 +44,21 @@ const PDF_LINES = [
 const HL = { y: 184, x: 86, w: 470 }; // the highlighted sentence
 
 // Reveal masks: each stroke's pressure outline is uncovered along its centre-line, like ink flowing from the pen.
-function inkSvg(group, id, color) {
+// With `byLine`, each written line is its own group with a clip, so Convert can wipe the ink away line by line.
+function inkSvg(group, id, color, byLine = false) {
   const defs = group.strokes.map((s, i) => `<mask id="${id}${i}" maskUnits="userSpaceOnUse" x="${s.b[0]}" y="${s.b[1]}" width="${s.b[2]}" height="${s.b[3]}"><path d="${s.c}" fill="none" stroke="#fff" stroke-width="${s.w}" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="${s.len + 2}" stroke-dashoffset="${s.len + 2}"/></mask>`).join('');
-  const body = group.strokes.map((s, i) => `<path d="${s.f}" fill="${color}" mask="url(#${id}${i})"/>`).join('');
-  return `<defs>${defs}</defs>${body}`;
+  const path = (s, i) => `<path d="${s.f}" fill="${color}" mask="url(#${id}${i})"/>`;
+  if (!byLine) return `<defs>${defs}</defs>${group.strokes.map(path).join('')}`;
+  const lines = [...new Set(group.strokes.map((s) => s.line))];
+  const clips = lines.map((l) => `<clipPath id="${id}c${l}"><rect x="0" y="0" width="880" height="780"/></clipPath>`).join('');
+  const body = lines.map((l) => `<g clip-path="url(#${id}c${l})">${group.strokes.map((s, i) => (s.line === l ? path(s, i) : '')).join('')}</g>`).join('');
+  return `<defs>${defs}${clips}</defs>${body}`;
 }
+// Where Convert's light passes over each line (it covers the handwriting and the typed text that replaces it).
+const SWEEP_Y = [[100, 92], [190, 70], [232, 50]];
+// The sparkles that burst off "Fix all": [x, y] of each one's flight, from the chip's left edge.
+const SPARKS = [[-62, -50], [-12, -66], [40, -46], [-74, 26], [58, 34], [-26, 58], [16, -80]];
+const sparkle = (i) => `<svg class="ni-spark" width="30" height="30" viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0-10C1.4-2.4 2.4-1.4 10 0 2.4 1.4 1.4 2.4 0 10-1.4 2.4-2.4 1.4-10 0-2.4-1.4-1.4-2.4 0-10Z" fill="${['#e08a00', '#4b57a9', '#1f7a3d'][i % 3]}"/></svg>`;
 
 function build() {
   const underlines = FONTS.map((f) => `<line class="${f.cls} ni-u" stroke="#e08a00" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 4.5"/>`).join('');
@@ -79,8 +89,9 @@ function build() {
   </div>
   <div class="ni-pagearea">
     <div class="ni-page ni-notes">
-      <svg class="ni-ink" width="880" height="780" viewBox="0 0 880 780">${inkSvg(ink.notes, 'nm', '#1c1f33')}</svg>
-      <svg class="ni-typedsvg" width="880" height="780" viewBox="0 0 880 780"><defs>${clips}</defs><g class="ni-typed">${typed}</g></svg>
+      <svg class="ni-ink" width="880" height="780" viewBox="0 0 880 780">${inkSvg(ink.notes, 'nm', '#1c1f33', true)}</svg>
+      <svg class="ni-typedsvg" width="880" height="780" viewBox="0 0 880 780"><defs>${clips}<linearGradient id="ni-sweepg"><stop offset="0" stop-color="#7f8cff" stop-opacity="0"/><stop offset="0.82" stop-color="#7f8cff" stop-opacity="0.3"/><stop offset="0.95" stop-color="#4b57a9" stop-opacity="0.85"/><stop offset="1" stop-color="#4b57a9" stop-opacity="0"/></linearGradient></defs><g class="ni-typed">${typed}</g>
+        ${SWEEP_Y.map(([y, h]) => `<rect class="ni-sweep" x="-80" y="${y}" width="80" height="${h}" rx="6" fill="url(#ni-sweepg)"/>`).join('')}</svg>
       <svg width="880" height="780" viewBox="0 0 880 780"><path class="ni-lassopath" d="M52,104 C260,84 560,92 790,100 C830,112 846,150 842,214 C838,276 830,300 792,296 C560,306 260,308 62,298 C34,292 30,250 36,200 C40,150 34,118 52,104 Z" fill="none" stroke="#4b57a9" stroke-width="2.5" stroke-linecap="round"/></svg>
       <div class="ni-selbox" style="left:36px;top:92px;width:808px;height:212px"></div>
     </div>
@@ -102,7 +113,7 @@ function build() {
         <div class="ni-rv-top"><span>Every line will be converted.</span><span class="ni-fixall">${ic(mdiAutoFix, 18)}Fix all (1)</span></div>
         <div class="ni-pg">Page 1</div>
         <div class="ni-row"><span class="a">Monday notes</span></div>
-        <div class="ni-row two"><span class="a">finish the report, it <u>isnt</u> due till friday</span><span class="b">finish the report, it isn't due till friday</span><em class="ni-chip pend">isnt → isn't</em><em class="ni-chip fixed">Fixed: isnt → isn't · Undo</em></div>
+        <div class="ni-row two"><span class="a">finish the report, it <u>isnt</u> due till friday</span><span class="b">finish the report, it isn't due till friday</span><em class="ni-chip pend">isnt → isn't</em><em class="ni-chip fixed">Fixed: isnt → isn't · Undo</em><span class="ni-sparks">${SPARKS.map((_, i) => sparkle(i)).join('')}</span></div>
         <div class="ni-row"><span class="a">call the team about the demo</span></div>
         <div class="ni-ctl"><span class="ni-drop">Font <b>Lexend</b>${ic(mdiMenuDown, 20)}</span><span class="ni-tgl">${ic(mdiFormatBold, 18)}Bold</span><span class="ni-tgl">${ic(mdiFormatItalic, 18)}Italic</span></div>
         <div class="ni-act"><span class="ni-text">Cancel</span><span class="ni-btn">Convert</span></div>
@@ -110,7 +121,8 @@ function build() {
     </div>
   </div>
   <div class="ni-menu">${['Pages', 'Add page', 'Rename', 'Delete page', 'Page paper', 'Export PDF'].map((t) => `<div${t === 'Export PDF' ? ' class="hot"' : ''}>${t}</div>`).join('')}</div>
-  <div class="ni-snack"><span class="ni-spin"></span>Exporting PDF...</div>
+  <div class="ni-snack"><span class="ni-snack-a"><span class="ni-spin"></span>Exporting PDF...</span><span class="ni-snack-b">${ic(mdiCheck, 20)}Saved Chapter 4.pdf</span></div>
+  <i class="glare ni-flash"></i>
   ${Array.from({ length: 10 }, () => '<i class="ni-ripple"></i>').join('')}
   <svg class="ni-penlayer" viewBox="0 0 1280 800"><g class="ni-pen"><g transform="rotate(26)">
     <path d="M0 0 L-5 -24 L5 -24Z" fill="#e6d3b8"/><path d="M0 0 L-1.8 -8 L1.8 -8Z" fill="#2b2b30"/>
@@ -206,7 +218,8 @@ export function initNeatInk(section, { reduced }) {
       u.setAttribute('y1', 238); u.setAttribute('y2', 238);
     });
   };
-  Promise.all(FONTS.map((f) => document.fonts.load(`21px ${f.family}`))).then(placeUnderlines).catch(() => {});
+  // (and once they are in, a refresh re-measures where each typed line ends, for Convert's light: see typedEnd)
+  Promise.all(FONTS.map((f) => document.fonts.load(`21px ${f.family}`))).then(() => { placeUnderlines(); if (!reduced) ScrollTrigger.refresh(); }).catch(() => {});
 
   // --- pen ---
   const penEl = q('.ni-pen');
@@ -214,7 +227,11 @@ export function initNeatInk(section, { reduced }) {
   const ripples = qa('.ni-ripple');
 
   // --- initial states ---
-  const clipRects = qa('clipPath rect');
+  const clipRects = [...q('.ni-typedsvg').querySelectorAll('clipPath rect')];
+  const inkClips = [...q('.ni-ink').querySelectorAll('clipPath rect')];
+  const sweeps = qa('.ni-sweep');
+  const sparks = qa('.ni-spark');
+  gsap.set([...sweeps, ...sparks], { opacity: 0 });
   const e = {
     sheet: q('.ni-sheet'), scrim: q('.ni-scrim'), bar: q('.ni-bar i'), reading: q('.ni-reading'), review: q('.ni-review'),
     rows: qa('.ni-row'), fixall: q('.ni-fixall'), chipP: q('.ni-chip.pend'), chipF: q('.ni-chip.fixed'), rowA: q('.ni-row.two .a'), rowB: q('.ni-row.two .b'),
@@ -284,6 +301,8 @@ export function initNeatInk(section, { reduced }) {
   e.rows.forEach((r, i) => tl.fromTo(r, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.012, ease: 'power2.out' }, 0.405 + i * 0.01));
   move([0.435, 0.46], at.fix);
   tap(0.465, at.fix);
+  // the fix lands with a little burst of sparkles off the chip (the app's own "auto fix" sparkle)
+  sparks.forEach((s, i) => tl.fromTo(s, { x: 0, y: 0, scale: 0.2, rotation: 0, opacity: 1 }, { x: SPARKS[i][0], y: SPARKS[i][1], scale: 0.7 + (i % 3) * 0.25, rotation: 120, opacity: 0, duration: 0.026, ease: 'power2.out' }, 0.468 + (i % 4) * 0.0025));
   fade(e.fixall, [0.466, 0.472], 1, 0);
   fade(e.chipP, [0.466, 0.472], 1, 0);
   fade(e.chipF, [0.47, 0.478], 0, 1);
@@ -292,11 +311,27 @@ export function initNeatInk(section, { reduced }) {
   move([0.485, 0.51], at.act);
   tap(0.515, at.act);
 
-  // ink becomes typed text, line by line
+  // ink becomes typed text, line by line: a light runs along each line, and the handwriting turns into type as it passes
   tl.fromTo(e.sheet, { y: 0 }, { y: 660, duration: 0.035, ease: 'power3.in' }, 0.52);
   fade(e.scrim, [0.525, 0.555], 1, 0);
-  fade(e.inkSvg, [0.545, 0.585], 1, 0);
-  clipRects.forEach((r, i) => tl.fromTo(r, { attr: { width: 0 } }, { attr: { width: 880 }, duration: 0.02, ease: 'power1.inOut' }, 0.54 + i * 0.016));
+  // The light crosses the handwriting; the type forms behind it in step (a typed line is shorter than a written one),
+  // so a word is never there twice: what has been passed is type, what is still ahead is ink.
+  const inkSpan = [0, 1, 2].map((l) => {
+    const ss = ink.notes.strokes.filter((s) => s.line === l);
+    return [Math.min(...ss.map((s) => s.b[0])) - 6, Math.max(...ss.map((s) => s.b[0] + s.b[2])) + 6];
+  });
+  const typedEnd = (i) => 64 + q(`text.f0[y="${LINES[i].y}"]`).getComputedTextLength() + 6; // depends on the font: measured
+  clipRects.forEach((r, i) => {
+    const t = 0.54 + i * 0.016, d = 0.02, ease = 'power1.inOut', [a, b] = inkSpan[i];
+    tl.fromTo(r, { attr: { width: 58 } }, { attr: { width: () => typedEnd(i) }, duration: d, ease }, t);
+    tl.fromTo(inkClips[i], { attr: { x: a } }, { attr: { x: b }, duration: d, ease }, t);
+    tl.fromTo(sweeps[i], { attr: { x: a - 80 } }, { attr: { x: b - 80 }, duration: d, ease }, t);
+    fade(sweeps[i], [t, t + 0.002], 0, 1);
+    fade(sweeps[i], [t + d - 0.003, t + d], 1, 0);
+  });
+  // all type now: the ink layer is hidden and made whole again underneath, for undo to bring back
+  tl.fromTo(e.inkSvg, { opacity: 1 }, { opacity: 0, duration: 0.001 }, 0.593);
+  tl.fromTo(inkClips, { attr: { x: 880 } }, { attr: { x: 0 }, duration: 0.001 }, 0.594);
   focus([0.525, 0.555], { fx: 550, fy: 360, z: 1.1, w: 0 }); // typed result: whole lines fit
   focus([0.572, 0.6], { fx: 1000, fy: 300, z: 1.15 });
 
@@ -340,8 +375,9 @@ export function initNeatInk(section, { reduced }) {
   // open a PDF: highlight a sentence, write a note, export
   fade(e.sel, [0.862, 0.872], 1, 0);
   fade(e.sbar, [0.862, 0.872], 1, 0);
-  fade(e.notesPage, [0.872, 0.895], 1, 0);
-  fade(e.pdfPage, [0.872, 0.895], 0, 1);
+  // the notes page is slid away and the PDF slides in, like going to the next document
+  tl.fromTo(e.notesPage, { x: 0, rotation: 0, opacity: 1 }, { x: -420, rotation: -3, opacity: 0, duration: 0.018, ease: 'power2.in' }, 0.871);
+  tl.fromTo(e.pdfPage, { x: 460, rotation: 2.5, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 0.02, ease: 'power3.out' }, 0.885);
   fade(e.t0, [0.872, 0.895], 1, 0); fade(e.t1, [0.872, 0.895], 0, 1);
   focus([0.865, 0.89], { fx: 600, fy: 380, z: 1.15, w: 1 });
   move([0.872, 0.895], [PAGE.x + HL.x, PAGE.y + HL.y + 20]);
@@ -367,7 +403,13 @@ export function initNeatInk(section, { reduced }) {
   tap(0.99, at.exportItem);
   tl.fromTo(e.menu, { opacity: 1 }, { opacity: 0, duration: 0.002 }, 0.992);
   tl.fromTo(e.snack, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.006, ease: 'power2.out' }, 0.992);
-  tl.fromTo(e.spin, { rotation: 0 }, { rotation: 720, duration: 0.05 }, 0.992);
+  tl.fromTo(e.spin, { rotation: 0 }, { rotation: 540, duration: 0.02 }, 0.992);
+  // done: the snackbar says where it went, and a light passes over the page as it is saved
+  const [snackA, snackB] = e.snack.children;
+  gsap.set(snackB, { opacity: 0 });
+  fade(snackA, [1.012, 1.018], 1, 0);
+  tl.fromTo(snackB, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.008, ease: 'back.out(2)' }, 1.013);
+  tl.fromTo(q('.ni-flash'), { xPercent: -36 }, { xPercent: 36, duration: 0.03, ease: 'power1.inOut', immediateRender: true }, 1.008);
 
   // behind the tablet: the scene's own ruled page, and the app's promises written large and faint as the walkthrough goes
   const words = backdrop(section, tl, reduced);
@@ -375,8 +417,12 @@ export function initNeatInk(section, { reduced }) {
   tl.eventCallback('onUpdate', placeCam); // after every tween has rendered, whatever order a rewind visited them in
   ScrollTrigger.addEventListener('refresh', () => { placeCam(); words.redraw(); }); // refresh renders the timeline to its end and back with events muted
   placeCam();
-  pinScene(section, tl, { length: 11, hold: 0.03, captions: [[0, 0.27], [0.27, 1.03]], poster: 0.603, reduced, stacked: true });
-  if (reduced) words.finish(); // the still shows every word written
+  pinScene(section, tl, { length: 11, hold: 0.05, captions: [[0, 0.27], [0.27, 1.05]], poster: 0.603, reduced, stacked: true, glass: view });
+  if (reduced) {
+    words.finish(); // the still shows every word written
+    // ...and every typed line whole: the still is drawn before the fonts arrive, so a measured line end would be short
+    clipRects.forEach((r) => r.setAttribute('width', 880));
+  }
 }
 
 /**
@@ -392,9 +438,12 @@ function backdrop(section, tl, reduced) {
   const holder = document.createElement('div');
   holder.innerHTML = `<div class="ni-back backdrop" aria-hidden="true">
     <div class="ni-rules">${Array.from({ length: 34 }, (_, i) => `<i style="top:${22 + i * 44}px"></i>`).join('')}<b></b></div>
-    ${word(ink.bg.offline, 'w1')}${word(ink.bg.accounts, 'w2')}${word(ink.bg.ads, 'w3')}</div>`;
+    ${word(ink.bg.offline, 'w1')}${word(ink.bg.accounts, 'w2')}${word(ink.bg.ads, 'w3')}<i class="ni-scan"></i></div>`;
   const el = holder.firstElementChild;
   section.querySelector('.stage').prepend(el);
+  // when Convert runs, its light crosses the whole scene too, over the ruled page, in step with the lines on the tablet
+  const scan = el.querySelector('.ni-scan');
+  tl.fromTo(scan, { x: () => -scan.offsetWidth }, { x: () => el.clientWidth, duration: 0.058, ease: 'power1.inOut', immediateRender: true }, 0.538);
   const rules = el.querySelector('.ni-rules');
   const lines = [...rules.querySelectorAll('i')], margin = rules.querySelector('b');
   // (the rules stay put once drawn: a drifting layer the size of the screen costs more than it gives)

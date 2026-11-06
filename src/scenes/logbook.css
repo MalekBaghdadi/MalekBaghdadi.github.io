@@ -13,12 +13,32 @@
 .lb-chapters b { display: block; font: 700 1.05rem var(--font-display); font-stretch: 112%; }
 .lb-chapters span { display: block; margin-top: 0.15rem; color: var(--scene-fg-2); font-size: 0.9rem; }
 
+/* logbook.js: the line that fills down the chapter list, the light under the phone, the card's rays, the glass */
+.lb-line { position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--scene-accent); }
+.lb-chapters .on-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--scene-accent) 22%, transparent); }
+.lb-pool { position: absolute; z-index: -1; left: -45%; right: -45%; bottom: -7%; height: 13%; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, rgba(157, 184, 245, 0.2), rgba(157, 184, 245, 0)); }
+.lb-rays {
+  position: absolute; z-index: -1; left: 50%; top: 40%; width: 290%; aspect-ratio: 1; margin-left: -145%; translate: 0 -50%; border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(157, 184, 245, 0.16) 0deg 2.6deg, rgba(157, 184, 245, 0) 2.6deg 11.25deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 18%, rgba(0, 0, 0, 0.45) 45%, transparent);
+  mask-image: radial-gradient(closest-side, #000 18%, rgba(0, 0, 0, 0.45) 45%, transparent);
+}
+.lb-glass { position: absolute; inset: 10px; border-radius: 34px; overflow: hidden; pointer-events: none; }
+
+/* the tally in the corner (logbook-streaks.js): big and faint, like the words behind NeatInk */
+.lb-count { position: absolute; right: var(--gutter); top: clamp(28px, 7vh, 72px); display: grid; justify-items: end; gap: 0.15rem; margin: 0; color: var(--scene-fg-2); font-size: 0.9rem; }
+.lb-count b { font: 800 clamp(3rem, 1.6rem + 4.4vw, 6.8rem) / 0.9 var(--font-display); font-stretch: 125%; letter-spacing: -0.02em; color: color-mix(in srgb, var(--scene-fg) 17%, transparent); font-variant-numeric: tabular-nums; }
+.lb-count em { font-style: normal; font-weight: 700; color: color-mix(in srgb, var(--scene-fg-2) 70%, transparent); transition: color 0.3s; }
+.lb-count.hot em { color: var(--scene-accent); }
+
 @media (max-width: 820px) {
   [data-scene="logbook"] [data-device] { height: 100%; }
   [data-scene="logbook"] .device-wrap { align-content: stretch; grid-template-rows: minmax(0, 1fr); }
   .lb-chapters { display: none; }
   .lb-phone { padding: 6px; border-radius: 32px; }
   .lb-phone canvas { border-radius: 26px; }
+  .lb-glass { inset: 6px; border-radius: 26px; }
+  .lb-count { display: none; } /* the phone fills the screen: no room beside it */
 }
 
 /* The floor of days behind the phone (logbook-streaks.js): drawn in perspective on a flat canvas along the bottom. */

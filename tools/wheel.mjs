@@ -14,7 +14,7 @@ const read = () => p.evaluate(() => ({
   y: Math.round(scrollY),
   lenis: document.documentElement.classList.contains('lenis'),
   signal: getComputedStyle(document.querySelector('.n2')).opacity,
-  nameOpacity: getComputedStyle(document.querySelector('.name')).opacity,
+  nameOpacity: Math.max(...[...document.querySelectorAll('.name .ch')].map((c) => +getComputedStyle(c).opacity)).toFixed(2), // the letters peel away one by one
 }));
 console.log('at rest      ', JSON.stringify(await read()));
 await p.mouse.move(700, 500);
