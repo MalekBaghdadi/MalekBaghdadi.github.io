@@ -244,11 +244,18 @@
   </dl>
 </footer>
 
-<button class="autoplay" type="button" hidden>
-  <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
-  <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>
-  <span class="autoplay-label">Auto-scroll</span>
-</button>
+<div class="autoplay-dock">
+  <button class="autoplay" type="button" hidden>
+    <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+    <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>
+    <span class="autoplay-label">Auto-scroll</span>
+  </button>
+  <div class="autoplay-speed" role="slider" tabindex="0" aria-label="Auto-scroll speed" aria-orientation="vertical"
+    aria-valuemin="0.25" aria-valuemax="4" aria-valuenow="1" aria-valuetext="1× speed" data-lenis-prevent>
+    <span class="autoplay-speed-value" aria-hidden="true">1×</span>
+    <span class="autoplay-speed-track" aria-hidden="true"><b></b><i></i></span>
+  </div>
+</div>
 
 <script type="module" src="/src/main.js"></script>
 </body>

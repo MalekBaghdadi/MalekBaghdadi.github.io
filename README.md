@@ -32,8 +32,12 @@ switched off by accident, and that silently turned every demo into a still on Ma
 - `src/sections.js`: the CV sections. Headings open to full width, entries rise into place, the work timeline draws
   itself, the skills marquee slides with the scroll, the contact card grows to full width.
 - `src/autoscroll.js`: the floating **Auto-scroll** button scrolls the whole site at a slow, steady 0.18 screens a
-  second (about three and a half minutes end to end). The visitor's own wheel, touch, scroll keys, scrollbar or a link
-  hands control straight back; at the end it offers **Watch again**.
+  second (about three and a half minutes end to end). While it plays, a slider above the button sets the speed: slide
+  up for faster, down for slower, from 0.25× to 4× with 1× in the middle (drag, arrow keys or the wheel; remembered in
+  `localStorage`). The visitor's own wheel, touch, scroll keys, scrollbar or a link hands control straight back; at the
+  end it offers **Watch again**. It scrolls natively once a frame, first in GSAP's tick and timed by the frame's own
+  timestamp, so phones get even whole-pixel steps; it does not go through Lenis every frame, which used to rewrite
+  Lenis's classes on `<html>` twice a frame.
 
 ## How the scenes work
 
@@ -70,7 +74,7 @@ node tools/shoot.mjs <label> <w> <h> <neatink|pigeon|logbook> 0,0.3,0.6,1   # sc
 node tools/at.mjs <label> <w> <h> top@1 neatink@0@-0.55 experience@0       # the seams between sections
 node tools/perf.mjs 390 844 neatink --cpu=4                                 # frame times while scrolling a scene
 node tools/wheel.mjs                                                        # real wheel scrolling + the demos link
-node tools/autoplay-test.mjs                                                # auto-scroll: pace, take-over, keyboard, end
+node tools/autoplay-test.mjs                                                # auto-scroll: pace, speed slider, take-over, keyboard, end, phone taps and even steps
 node tools/end-state.mjs                                                    # nothing left half-animated at the page end
 ```
 
