@@ -13,6 +13,8 @@ import { initPigeon } from './scenes/pigeon.js';
 import { initLogbook } from './scenes/logbook.js';
 import { initSections } from './sections.js';
 import { initAutoScroll } from './autoscroll.js';
+import { initGame } from './game.js';
+import { initEggs } from './eggs.js';
 import { still } from './ambient.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -50,6 +52,8 @@ initPigeon(document.getElementById('pigeon'), { reduced });
 initLogbook(document.getElementById('logbook'), { reduced });
 initSections({ reduced });
 initAutoScroll({ lenis, reduced });
+initGame({ lenis }); // with motion off too: the game only runs when it is asked for
+initEggs({ reduced });
 
 // Fonts and frame images change layout; re-measure once everything has settled.
 addEventListener('load', () => ScrollTrigger.refresh());

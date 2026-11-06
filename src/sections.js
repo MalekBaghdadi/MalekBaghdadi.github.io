@@ -67,6 +67,8 @@ export function initSections({ reduced }) {
     const [fill, dot] = rail.children;
     gsap.fromTo(fill, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: st(list, 'top 75%', 'bottom 60%') });
     gsap.fromTo(dot, { y: 0 }, { y: () => rail.clientHeight, ease: 'none', scrollTrigger: { ...st(list, 'top 75%', 'bottom 60%'), invalidateOnRefresh: true } });
+    // the dot sends out a ping as it rides the rail (style.css), only while the timeline is on screen
+    new IntersectionObserver(([e]) => list.classList.toggle('is-live', e.isIntersecting)).observe(list);
   }
 
   document.querySelectorAll('.mq-row').forEach((row, i) => {
@@ -106,5 +108,24 @@ export function initSections({ reduced }) {
       // ...and the hero's rings come back with it: the page ends as it began, the signal pulsing out of the bars
       initFooterWaves(contact, rc.querySelector('svg'), back, 0.84);
     }
+    footerLight(contact);
   }
+}
+
+// A soft light in the dark footer that follows a mouse around (moved with a transform only: no repaint as it goes).
+function footerLight(contact) {
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const spot = Object.assign(document.createElement('i'), { className: 'contact-light' });
+  contact.prepend(spot);
+  const x = gsap.quickTo(spot, 'x', { duration: 0.6, ease: 'power3.out' }), y = gsap.quickTo(spot, 'y', { duration: 0.6, ease: 'power3.out' });
+  let fresh = true;
+  contact.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const r = contact.getBoundingClientRect(), px = e.clientX - r.left - spot.offsetWidth / 2, py = e.clientY - r.top - spot.offsetHeight / 2;
+    if (fresh) { gsap.set(spot, { x: px, y: py }); fresh = false; } // appear where the mouse came in, not glide over from the last spot
+    x(px);
+    y(py);
+    spot.classList.add('on');
+  });
+  contact.addEventListener('pointerleave', () => { spot.classList.remove('on'); fresh = true; });
 }

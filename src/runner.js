@@ -1,9 +1,10 @@
 // A pixel runner along the bottom of "Game development": it runs with the scroll (stop and it stops, scroll up and it
 // runs backwards), jumps at each block, bumps it from below and a coin pops out. Drawn in the site's own ink,
 // ultramarine and flare, with the marquee's square for a coin. Everything is a function of the scroll position.
+// (The sprites are exported: the Bug Run game behind the Play button, game/bugrun.js, has the same runner.)
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const PAL = { k: '#0f1633', b: '#2b3bff', s: '#e9b48f', f: '#ff5a36', w: '#ffffff', g: '#434b6b' };
+export const PAL = { k: '#0f1633', b: '#2b3bff', s: '#e9b48f', f: '#ff5a36', w: '#ffffff', g: '#434b6b' };
 // 12 x 16 sprites, facing right: two running frames and a jump
 const TOP = [
   '....kkkk....',
@@ -12,12 +13,12 @@ const TOP = [
   '...kksssss..',
   '....sssss...',
 ];
-const FRAMES = {
+export const FRAMES = {
   a: [...TOP, '...bbbbbb...', '..bbbbbbbb..', '..sbbbbbbs..', '...bbbbbb...', '...kkkkkk...', '...kkkkkk...', '..kk...kk...', '.kk.....kk..', '.kk......kk.', 'ff.......ff.', '............'],
   b: [...TOP, '...bbbbbb...', '...bbbbbb...', '...bsbbsb...', '...bbbbbb...', '...kkkkkk...', '....kkkk....', '....kkkk....', '....kk.k....', '....kk.k....', '....ff.ff...', '............'],
   j: [...TOP, 's..bbbbbb..s', 'sbbbbbbbbbbs', '..bbbbbbbb..', '...bbbbbb...', '...kkkkkk...', '..kkkkkkkk..', '.kk......kk.', 'kk........kk', 'ff........ff', '............', '............'],
 };
-const BLOCK = [
+export const BLOCK = [
   'kkkkkkkkkk',
   'kbbbbbbbbk',
   'kbbwwwwbbk',

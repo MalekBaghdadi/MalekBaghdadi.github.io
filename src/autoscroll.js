@@ -100,6 +100,7 @@ export function initAutoScroll({ lenis, reduced }) {
   addEventListener('touchstart', (e) => { if (!dock.contains(e.target)) takeOver(); }, { passive: true });
   addEventListener('keydown', (e) => { if (!dock.contains(e.target) && SCROLL_KEYS.includes(e.key)) takeOver(); });
   document.addEventListener('pointerdown', (e) => { if (e.target.closest('a')) takeOver(); });
+  document.addEventListener('site:pause-autoscroll', takeOver); // e.g. the game window opening (game.js)
   lenis.on('scroll', () => { if (!playing) setLabel(); });
 
   // ---- the speed slider ----
