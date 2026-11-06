@@ -143,3 +143,18 @@ about the apps, so the page does not claim it). Any of these can be added later.
 - **Shared scene moves:** device stands up on entry, title opens on the width axis, caption words light up as read.
 - **CV sections:** headings open on the width axis, entries rise, the work timeline draws, a two-row skills marquee
   slides with the scroll, the contact card grows to full width. All scrubbed and reversible.
+
+## 9. Revision 3 (2026-11-06): every scene gets its world, and some life at rest
+
+- **Asked for:** more animation everywhere, something to look at in every second, e.g. fire and an ambulance behind Pigeon.
+- **Backdrops, scrubbed like everything else:** the hero's signal pulses until the connection drops; NeatInk's ruled page
+  with "offline / no accounts / no ads" written large and faint; Pigeon's night city living through the reported fire
+  (spreads, pings, responders arrive, ladder and water, sirens off); Logbook's year of streaks filling in perspective.
+  CV: rules draw themselves, marquee squares turn, a pixel runner in Game development, the footer ends "Back online".
+- **Ambient loops are the exception** to "stop and it stops": flames, smoke, sirens, stars and the clock keep moving at
+  rest, so a stopped page is never dead. They run only while their chapter is visible and their part of the story is on,
+  never with motion off; `?still` freezes them for the reverse-playback checks.
+- **Budget:** measured with auto-scroll at 4x CPU throttling on a phone viewport against the previous build. Loops that
+  cannot run on the compositor were dropped, nothing loops in Logbook, the Logbook floor's perspective is drawn on a flat
+  canvas instead of a CSS 3D layer, and auto-scroll still moves in even whole-pixel steps everywhere.
+

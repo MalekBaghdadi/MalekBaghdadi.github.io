@@ -9,7 +9,7 @@ import sharp from 'sharp';
 
 const [label, w, h, scene = 'hero', pts = '0,0.5,1', ...rest] = process.argv.slice(2);
 const opt = Object.fromEntries(rest.filter((a) => a.startsWith('--')).map((a) => a.slice(2).split('=')));
-const URL_ = opt.url ?? 'http://localhost:5199/';
+const URL_ = opt.url ?? 'http://localhost:5199/?still'; // ?still freezes the ambient loops (flames, sirens), which follow time, not scroll
 const OUT = `tools/out/${label}/`;
 mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));

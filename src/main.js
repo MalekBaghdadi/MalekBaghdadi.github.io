@@ -13,6 +13,7 @@ import { initPigeon } from './scenes/pigeon.js';
 import { initLogbook } from './scenes/logbook.js';
 import { initSections } from './sections.js';
 import { initAutoScroll } from './autoscroll.js';
+import { still } from './ambient.js';
 
 gsap.registerPlugin(ScrollTrigger);
 // Keep moving layers in 3D: GSAP otherwise drops a finished transform back to 2D, which repaints the big device layers mid-scroll.
@@ -24,6 +25,7 @@ gsap.config({ force3D: true });
 const saved = (() => { try { return localStorage.getItem('motion'); } catch { return null; } })();
 const reduced = saved === 'off';
 document.documentElement.classList.toggle('reduced', reduced);
+document.documentElement.classList.toggle('still', still); // ?still: ambient loops frozen, for the screenshot checks
 
 const toggle = document.querySelector('.motion-toggle');
 toggle.setAttribute('aria-pressed', String(reduced));

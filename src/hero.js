@@ -1,6 +1,8 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { splitWords } from './split.js';
+import { initWaves } from './hero-waves.js';
+import { liveWhileVisible } from './ambient.js';
 
 const WIDE = 150;   // Anybody's widest width axis: the name rests here and fills the line
 const NARROW = 50;  // where the load intro starts
@@ -63,10 +65,16 @@ export function initHero({ reduced }) {
     render();
   }
 
-  // Beirut's time, the one live detail in the status line.
+  // Beirut's time, the one live detail in the status line; its colon blinks every second while the hero is on screen.
   const clock = q('.clock time');
-  const fmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Beirut' });
-  const tick = () => { clock.textContent = fmt.format(new Date()); };
+  clock.innerHTML = '<span></span><b class="colon amb">:</b><span></span>';
+  const [hh, , mm] = clock.children;
+  const fmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Beirut' });
+  const tick = () => {
+    const parts = fmt.formatToParts(new Date());
+    hh.textContent = parts.find((p) => p.type === 'hour').value;
+    mm.textContent = parts.find((p) => p.type === 'minute').value;
+  };
   tick();
   setInterval(tick, 20_000);
 
@@ -126,6 +134,9 @@ export function initHero({ reduced }) {
   tl.set({}, {}, 1);
   tl.eventCallback('onUpdate', render);
   ScrollTrigger.addEventListener('refresh', render); // refresh renders the timeline to its end and back with events muted
+  // behind it all, the signal: rings pulse out of the bars until the connection drops (hero-waves.js)
+  initWaves(stage, q('.bars'), tl, LEN, reduced);
+  liveWhileVisible(hero, LEN);
 
   if (reduced) {
     tl.time(0).pause();

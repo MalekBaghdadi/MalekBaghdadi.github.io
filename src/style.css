@@ -65,6 +65,9 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-
 .hero-top { position: relative; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem; }
 .status { display: flex; align-items: center; gap: 1rem; font-weight: 500; }
 .clock time { font-variant-numeric: tabular-nums; }
+.clock .colon { font-weight: inherit; animation-name: colon; animation-duration: 1s; animation-timing-function: steps(1, end); animation-iteration-count: infinite; }
+@keyframes colon { 50% { opacity: 0.2; } }
+.hero-waves { z-index: 0; width: 100%; height: 100%; }
 .net { display: inline-flex; align-items: center; gap: 0.5rem; }
 .bars { display: block; color: var(--ink); }
 .bars rect { fill: currentColor; }
@@ -173,6 +176,16 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
 #logbook { --scene-bg: #0e1420; --scene-fg: #e7eaf0; --scene-fg-2: #aab3c3; --scene-accent: #9db8f5; --btn-bg: #9db8f5; --btn-fg: #0e1420; }
 .scene a:focus-visible { outline-color: var(--scene-accent); }
 
+/* Backdrops: each scene's world behind its demo (ambient.js places them). The copy and the device sit above, by
+   z-index: on phones the device comes first by `order`, and grid items paint in that order, not the markup's. */
+.backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.stage > .copy, .stage > .device-wrap { position: relative; z-index: 1; }
+
+/* Ambient loops (ambient.js): paused until their section is on screen; none with motion off, or with ?still. */
+.amb { animation-play-state: paused; }
+.is-live .amb { animation-play-state: running; }
+.reduced .amb, .still .amb { animation: none !important; }
+
 .stage {
   position: relative;
   height: 100vh;
@@ -233,10 +246,18 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
 .entry li { margin: 0.4em 0; }
 .coursework { max-width: 64ch; }
 
+/* Rules that draw themselves (sections.js): the border keeps its space, the drawn line shows instead of it. */
+.ledger, .marquee { position: relative; }
+.ruled { border-top-color: transparent !important; }
+.rule { position: absolute; left: 0; right: 0; top: -1px; height: 1px; pointer-events: none; }
+.rule b:first-child { position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 16%, transparent); transform-origin: 0 50%; }
+.rule b:last-child { position: absolute; left: 0; top: -3px; width: 7px; height: 7px; background: var(--blue); }
+.rail b + b { position: absolute; left: 50%; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; transform: none; background: var(--blue); border: 2px solid var(--concrete); border-radius: 50%; }
+
 .marquee { display: grid; gap: 0.1em; padding-block: clamp(40px, 7vw, 88px) 0; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); overflow: hidden; }
 .mq-row { display: flex; width: max-content; gap: 0.45em; font: 800 clamp(2.6rem, 1rem + 7vw, 8.5rem) / 1.05 var(--font-display); font-stretch: 125%; letter-spacing: -0.02em; white-space: nowrap; }
 .mq-row span { display: inline-flex; align-items: center; gap: 0.45em; }
-.mq-row span::after { content: ""; width: 0.16em; height: 0.16em; background: var(--blue); }
+.mq-row span::after { content: ""; width: 0.16em; height: 0.16em; background: var(--blue); transform: rotate(var(--spin, 0deg)); }
 .mq-outline { color: transparent; -webkit-text-stroke: 2px var(--ink); }
 #skills { border-top: 0; }
 
@@ -246,6 +267,25 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
 
 .contact { background: var(--ink); color: var(--concrete); padding: clamp(56px, 10vw, 128px) var(--gutter); }
 .contact h2 { font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem); font-weight: 800; margin-bottom: clamp(24px, 4vw, 48px); }
+/* The page ends back online (sections.js): the hero's bars, reconnecting. Without motion it simply reads "Back online". */
+.reconnect { display: flex; align-items: center; gap: 0.6rem; margin: calc(-1 * clamp(10px, 2vw, 28px)) 0 clamp(24px, 4vw, 44px); font-weight: 500; }
+.reconnect svg { display: block; fill: currentColor; }
+.reconnect span { display: inline-grid; }
+.reconnect b { grid-area: 1 / 1; font-weight: 500; white-space: nowrap; }
+.rc-off { color: var(--flare); opacity: 0; }
+
+/* The pixel runner along Game development (runner.js): extra room under the section for its track. */
+#games { padding-bottom: calc(clamp(48px, 9vw, 112px) + 120px); }
+.runner { position: absolute; left: var(--gutter); right: var(--gutter); bottom: clamp(20px, 3vw, 40px); height: 1px; pointer-events: none; }
+.runner-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 28%, transparent) 0 6px, transparent 6px 12px); }
+.runner-me { position: absolute; left: 0; bottom: 3px; }
+.runner-me svg, .runner-block .off, .runner-block.used .on { display: none; }
+.runner-me[data-frame="a"] .fa, .runner-me[data-frame="b"] .fb, .runner-me[data-frame="j"] .fj, .runner-block.used .off { display: block; }
+.runner-block { position: absolute; }
+.runner-block svg { display: block; }
+.runner-coin { position: absolute; left: 50%; top: -8px; width: 14px; height: 14px; margin-left: -7px; background: var(--flare); opacity: 0; }
+.reduced #games { padding-bottom: clamp(48px, 9vw, 112px); }
+
 .contact dl { display: grid; grid-template-columns: minmax(6rem, 9rem) minmax(0, 1fr); gap: 0.9rem 1.5rem; margin: 0; }
 .contact dt { color: color-mix(in srgb, var(--concrete) 70%, transparent); }
 .contact dd { margin: 0; font-size: clamp(1.1rem, 1rem + 0.6vw, 1.5rem); overflow-wrap: anywhere; }

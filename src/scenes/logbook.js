@@ -1,7 +1,10 @@
 import './logbook.css';
 import { gsap } from 'gsap';
 import manifest from './logbook-manifest.json';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { pinScene } from '../scene.js';
+import { buildStreaks, initStreaks } from './logbook-streaks.js';
+import { placeBackdrop } from '../ambient.js';
 
 // What each stretch of the capture shows (marks are where the recording reached each screen), in the app's own words.
 const CHAPTERS = [
@@ -82,6 +85,14 @@ export function initLogbook(section, { reduced }) {
       tl.fromTo(rows[i], { opacity: 1 }, { opacity: 0.45, duration: fade }, b - fade);
     }
   });
+
+  // behind the phone, a year of streaks filling in (logbook-streaks.js): full-bleed on wide screens, in the device on phones
+  const holder = document.createElement('div');
+  holder.innerHTML = buildStreaks();
+  const floorEl = holder.firstElementChild;
+  const floor = initStreaks(floorEl, tl);
+  placeBackdrop(floorEl, section.querySelector('.stage'), mount, floor.relayout);
+  ScrollTrigger.addEventListener('refresh', floor.redraw); // refresh renders the timeline with events muted
 
   if (reduced) load(); // the still needs its frame without waiting to scroll near
   pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.3], [0.3, 1.03]], poster: 0.515, reduced, stacked: true });

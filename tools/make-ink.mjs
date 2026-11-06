@@ -14,7 +14,18 @@ const notes = schedule([title.strokes, l2.strokes, l3.strokes]);
 const note = handwrite('ask about this', { x: 0, baseline: 0, scale: 1.3, size: 2.6, font: F, seed: 41 });
 const pdfnote = schedule([note.strokes]);
 
-const out = { notes, pdfnote, noteWidth: Math.round(note.right) };
+// Big words written faintly in the scene's background: the README's promises. Centre-lines only (drawn as a plain
+// stroke), each with its own box and writing schedule.
+const bgWord = (text, seed) => {
+  const w = handwrite(text, { x: 0, baseline: 0, scale: 1.45, size: 2.5, font: F, seed });
+  const { strokes } = schedule([w.strokes]);
+  const x0 = Math.min(...strokes.map((s) => s.b[0])), y0 = Math.min(...strokes.map((s) => s.b[1]));
+  const x1 = Math.max(...strokes.map((s) => s.b[0] + s.b[2])), y1 = Math.max(...strokes.map((s) => s.b[1] + s.b[3]));
+  return { box: [x0, y0, x1 - x0, y1 - y0], strokes: strokes.map(({ c, len, t0, t1 }) => ({ c, len, t0, t1 })) };
+};
+const bg = { offline: bgWord('offline', 51), accounts: bgWord('no accounts', 61), ads: bgWord('no ads', 71) };
+
+const out = { notes, pdfnote, noteWidth: Math.round(note.right), bg };
 const json = JSON.stringify(out);
 writeFileSync('src/scenes/neatink-ink.json', json);
-console.log('strokes', notes.strokes.length, '+', pdfnote.strokes.length, 'size', Math.round(json.length / 1024) + ' KB', 'line right edges', Math.round(title.right), Math.round(l2.right), Math.round(l3.right));
+console.log('strokes', notes.strokes.length, '+', pdfnote.strokes.length, '+ background', Object.values(bg).map((w) => w.strokes.length).join('/'), 'size', Math.round(json.length / 1024) + ' KB', 'line right edges', Math.round(title.right), Math.round(l2.right), Math.round(l3.right));

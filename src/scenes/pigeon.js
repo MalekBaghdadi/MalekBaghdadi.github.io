@@ -11,6 +11,8 @@ import {
   mdiSwapHorizontal,
 } from '@mdi/js';
 import { pinScene } from '../scene.js';
+import { buildCity, initCity } from './pigeon-city.js';
+import { liveWhileVisible, placeBackdrop } from '../ambient.js';
 
 const ic = (d, s = 24) => `<svg class="pg-i" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
 const COORDS = 'Lat: 33.8938, Lon: 35.5018';
@@ -274,6 +276,14 @@ export function initPigeon(section, { reduced }) {
   const run = { x: 0 };
   tl.fromTo(run, { x: 0 }, { x: 476, duration: 0.1, onUpdate() { cursor.setAttribute('x1', run.x); cursor.setAttribute('x2', run.x); } }, 0.86);
   blocks.forEach((b, j) => tl.fromTo(b, { opacity: 0 }, { opacity: 1, duration: 0.004 }, 0.86 + ((100 + j * 22) / 476) * 0.1));
+
+  // 7. behind it all, the city the incident happens in (pigeon-city.js): full-bleed on wide screens, in the frame on phones
+  const holder = document.createElement('div');
+  holder.innerHTML = buildCity();
+  const cityEl = holder.firstElementChild;
+  const city = initCity(cityEl, tl);
+  placeBackdrop(cityEl, section.querySelector('.stage'), frame, city.relayout);
+  liveWhileVisible(section, 10);
 
   tl.eventCallback('onUpdate', placeCam);
   ScrollTrigger.addEventListener('refresh', placeCam);

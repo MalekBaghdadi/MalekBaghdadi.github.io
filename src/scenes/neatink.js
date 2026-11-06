@@ -369,8 +369,54 @@ export function initNeatInk(section, { reduced }) {
   tl.fromTo(e.snack, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.006, ease: 'power2.out' }, 0.992);
   tl.fromTo(e.spin, { rotation: 0 }, { rotation: 720, duration: 0.05 }, 0.992);
 
+  // behind the tablet: the scene's own ruled page, and the app's promises written large and faint as the walkthrough goes
+  const words = backdrop(section, tl, reduced);
+
   tl.eventCallback('onUpdate', placeCam); // after every tween has rendered, whatever order a rewind visited them in
-  ScrollTrigger.addEventListener('refresh', placeCam); // refresh renders the timeline to its end and back with events muted
+  ScrollTrigger.addEventListener('refresh', () => { placeCam(); words.redraw(); }); // refresh renders the timeline to its end and back with events muted
   placeCam();
   pinScene(section, tl, { length: 11, hold: 0.03, captions: [[0, 0.27], [0.27, 1.03]], poster: 0.603, reduced, stacked: true });
+  if (reduced) words.finish(); // the still shows every word written
+}
+
+/**
+ * The backdrop: rules across the whole scene that draw themselves while the chapter slides in, a margin line, and three
+ * words in the app's ink colour, each written stroke by stroke during its part of the walkthrough: "offline" while the
+ * pen writes, "no accounts" while the ink turns into text, "no ads" over the PDF.
+ */
+function backdrop(section, tl, reduced) {
+  const word = (w, cls) => {
+    const [x, y, bw, bh] = w.box;
+    return `<svg class="ni-word ${cls}" viewBox="${x} ${y} ${bw} ${bh}">${w.strokes.map((s) => `<path d="${s.c}" stroke-dasharray="${s.len + 1}" stroke-dashoffset="${s.len + 1}"/>`).join('')}</svg>`;
+  };
+  const holder = document.createElement('div');
+  holder.innerHTML = `<div class="ni-back backdrop" aria-hidden="true">
+    <div class="ni-rules">${Array.from({ length: 34 }, (_, i) => `<i style="top:${22 + i * 44}px"></i>`).join('')}<b></b></div>
+    ${word(ink.bg.offline, 'w1')}${word(ink.bg.accounts, 'w2')}${word(ink.bg.ads, 'w3')}</div>`;
+  const el = holder.firstElementChild;
+  section.querySelector('.stage').prepend(el);
+  const rules = el.querySelector('.ni-rules');
+  const lines = [...rules.querySelectorAll('i')], margin = rules.querySelector('b');
+  // (the rules stay put once drawn: a drifting layer the size of the screen costs more than it gives)
+
+  if (reduced) gsap.set(lines, { scaleX: 1 });
+  else {
+    // 2D transforms: with the site's force3D every line would become a layer of its own
+    gsap.timeline({ scrollTrigger: { trigger: section, start: 'top bottom', end: 'top top', scrub: 0.4 }, defaults: { force3D: false } })
+      .fromTo(lines, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: 'power2.out', stagger: 0.025 }, 0)
+      .fromTo(margin, { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: 'power2.out' }, 0.15);
+  }
+
+  const writers = [[ink.bg.offline, '.w1', 0.04, 0.28], [ink.bg.accounts, '.w2', 0.52, 0.7], [ink.bg.ads, '.w3', 0.78, 0.97]].map(([w, sel, a, b]) => {
+    const paths = [...el.querySelectorAll(`${sel} path`)];
+    const shown = paths.map(() => -1);
+    const o = { p: 0 };
+    const draw = (p) => w.strokes.forEach((s, i) => {
+      const f = Math.max(0, Math.min(1, (p - s.t0) / (s.t1 - s.t0)));
+      if (f !== shown[i]) { shown[i] = f; paths[i].style.strokeDashoffset = ((s.len + 1) * (1 - f)).toFixed(1); }
+    });
+    tl.fromTo(o, { p: 0 }, { p: 1, duration: b - a, onUpdate: () => draw(o.p) }, a);
+    return { redraw: () => draw(o.p), finish: () => draw(1) };
+  });
+  return { redraw: () => writers.forEach((w) => w.redraw()), finish: () => writers.forEach((w) => w.finish()) };
 }

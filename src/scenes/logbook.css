@@ -20,3 +20,9 @@
   .lb-phone { padding: 6px; border-radius: 32px; }
   .lb-phone canvas { border-radius: 26px; }
 }
+
+/* The floor of days behind the phone (logbook-streaks.js): drawn in perspective on a flat canvas along the bottom. */
+.lb-ground { position: absolute; left: 0; right: 0; bottom: 0; }
+.lb-ground canvas { display: block; width: 100%; height: 100%; }
+.lb-today { position: absolute; left: 0; top: 0; width: 10px; height: 10px; transform-origin: 0 0; background: rgba(157, 184, 245, 0.55); }
+.lb-today[hidden] { display: none; }
