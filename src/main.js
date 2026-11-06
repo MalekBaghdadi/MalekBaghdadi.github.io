@@ -12,6 +12,7 @@ import { initNeatInk } from './scenes/neatink.js';
 import { initPigeon } from './scenes/pigeon.js';
 import { initLogbook } from './scenes/logbook.js';
 import { initSections } from './sections.js';
+import { initAutoScroll } from './autoscroll.js';
 
 gsap.registerPlugin(ScrollTrigger);
 // Keep moving layers in 3D: GSAP otherwise drops a finished transform back to 2D, which repaints the big device layers mid-scroll.
@@ -31,9 +32,10 @@ toggle.addEventListener('click', () => {
   location.reload();
 });
 
+let lenis = null;
 if (!reduced) {
   // Smooth, weighted scrolling for wheel and trackpad (touch keeps the phone's native scrolling), driven by GSAP's clock.
-  const lenis = new Lenis({ lerp: 0.11, anchors: true, autoRaf: false });
+  lenis = new Lenis({ lerp: 0.11, anchors: true, autoRaf: false });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
@@ -45,6 +47,7 @@ initNeatInk(document.getElementById('neatink'), { reduced });
 initPigeon(document.getElementById('pigeon'), { reduced });
 initLogbook(document.getElementById('logbook'), { reduced });
 initSections({ reduced });
+initAutoScroll({ lenis, reduced });
 
 // Fonts and frame images change layout; re-measure once everything has settled.
 addEventListener('load', () => ScrollTrigger.refresh());

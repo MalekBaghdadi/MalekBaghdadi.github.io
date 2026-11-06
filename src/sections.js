@@ -9,10 +9,10 @@ export function initSections({ reduced }) {
   const scrub = 0.5;
   const st = (trigger, start, end) => ({ trigger, start, end, scrub });
 
-  for (const h of document.querySelectorAll('.ledger > h2, .contact h2')) {
+  for (const h of document.querySelectorAll('.ledger > h2')) {
     gsap.fromTo(splitChars(h), { fontStretch: '55%' }, { fontStretch: '125%', ease: 'none', stagger: 0.06, scrollTrigger: st(h, 'top 95%', 'top 55%') });
   }
-  for (const el of document.querySelectorAll('.entry, .skills dt, .skills dd, .contact dt, .contact dd')) {
+  for (const el of document.querySelectorAll('.entry, .skills dt, .skills dd')) {
     gsap.fromTo(el, { y: 64, opacity: 0.12 }, { y: 0, opacity: 1, ease: 'none', scrollTrigger: st(el, 'top 98%', 'top 68%') });
   }
 
@@ -29,8 +29,12 @@ export function initSections({ reduced }) {
     gsap.fromTo(row, { xPercent: i % 2 ? -28 : 0 }, { xPercent: i % 2 ? 0 : -28, ease: 'none', scrollTrigger: st(row.parentElement, 'top bottom', 'bottom top') });
   });
 
+  // The footer ends the page, so everything in it finishes exactly when the scroll does ('bottom bottom'):
+  // a position on screen like 'top 55%' may never be reached on a short phone screen, leaving things half done.
   const contact = document.querySelector('.contact');
   if (contact) {
-    gsap.fromTo(contact, { clipPath: 'inset(0% 5% 0% 5% round 48px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none', scrollTrigger: st(contact, 'top bottom', 'top 25%') });
+    gsap.fromTo(contact, { clipPath: 'inset(0% 5% 0% 5% round 48px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none', scrollTrigger: st(contact, 'top bottom', 'bottom bottom') });
+    gsap.fromTo(splitChars(contact.querySelector('h2')), { fontStretch: '55%' }, { fontStretch: '125%', ease: 'none', stagger: 0.06, scrollTrigger: st(contact, 'top 90%', 'bottom bottom') });
+    gsap.fromTo(contact.querySelectorAll('dt, dd'), { y: 48, opacity: 0.12 }, { y: 0, opacity: 1, ease: 'none', stagger: 0.08, scrollTrigger: st(contact, 'top 85%', 'bottom bottom') });
   }
 }

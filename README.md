@@ -31,6 +31,9 @@ switched off by accident, and that silently turned every demo into a still on Ma
   old one is pushed back and dimmed (sections overlap by one screen: `margin-top: -100svh`).
 - `src/sections.js`: the CV sections. Headings open to full width, entries rise into place, the work timeline draws
   itself, the skills marquee slides with the scroll, the contact card grows to full width.
+- `src/autoscroll.js`: the floating **Auto-scroll** button scrolls the whole site at a slow, steady 0.18 screens a
+  second (about three and a half minutes end to end). The visitor's own wheel, touch, scroll keys, scrollbar or a link
+  hands control straight back; at the end it offers **Watch again**.
 
 ## How the scenes work
 
@@ -67,6 +70,8 @@ node tools/shoot.mjs <label> <w> <h> <neatink|pigeon|logbook> 0,0.3,0.6,1   # sc
 node tools/at.mjs <label> <w> <h> top@1 neatink@0@-0.55 experience@0       # the seams between sections
 node tools/perf.mjs 390 844 neatink --cpu=4                                 # frame times while scrolling a scene
 node tools/wheel.mjs                                                        # real wheel scrolling + the demos link
+node tools/autoplay-test.mjs                                                # auto-scroll: pace, take-over, keyboard, end
+node tools/end-state.mjs                                                    # nothing left half-animated at the page end
 ```
 
 `shoot.mjs` and `at.mjs` take `--motion=off` to check the still version. They use the system Chrome.
