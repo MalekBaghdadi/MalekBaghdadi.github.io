@@ -46,7 +46,10 @@ const chip = (cls, label) => `<div class="pg-ev ${cls}">${label}</div>`;
 function build() {
   const edges = EDGES.map(([a, b]) => `<line class="pg-edge" x1="${NODES[a][0]}" y1="${NODES[a][1]}" x2="${NODES[b][0]}" y2="${NODES[b][1]}"/>`).join('');
   const edgesOn = EDGES.map(([a, b]) => `<line class="pg-edge-on" x1="${NODES[a][0]}" y1="${NODES[a][1]}" x2="${NODES[b][0]}" y2="${NODES[b][1]}"/>`).join('');
-  const nodes = NODES.map(([x, y], i) => `<g class="pg-node" transform="translate(${x} ${y})"><circle class="pg-ring" r="50"/><circle class="pg-act" r="50"/><circle class="pg-pulse" r="50"/>${i ? '<rect class="pg-body" x="-19" y="-37" width="38" height="74" rx="8"/><rect class="pg-scr" x="-14" y="-31" width="28" height="56" rx="4"/>' : ''}<rect class="pg-badge" x="-9" y="42" width="18" height="10" rx="3" style="transform-box:fill-box;transform-origin:center"/></g>`).join('');
+  // each phone in the mesh: when the event reaches it the screen flashes and an alert banner drops in; later, as the
+  // radios go back to listening, the screen sleeps
+  const screenParts = '<rect class="pg-scr" x="-14" y="-31" width="28" height="56" rx="4"/><rect class="pg-ban" x="-11.5" y="-28" width="23" height="9" rx="2.5"/><rect class="pg-flash" x="-14" y="-31" width="28" height="56" rx="4"/><rect class="pg-sleep" x="-14" y="-31" width="28" height="56" rx="4"/>';
+  const nodes = NODES.map(([x, y], i) => `<g class="pg-node" transform="translate(${x} ${y})"><circle class="pg-ring" r="50"/><circle class="pg-act" r="50"/><circle class="pg-pulse" r="50"/>${i ? `<rect class="pg-body" x="-19" y="-37" width="38" height="74" rx="8"/>${screenParts}` : ''}<rect class="pg-badge" x="-9" y="42" width="18" height="10" rx="3" style="transform-box:fill-box;transform-origin:center"/></g>`).join('');
   const tokens = HOPS.map(() => '<circle class="pg-tk" cx="0" cy="0" r="7"/>').join('');
   const blocks = Array.from({ length: 14 }, (_, j) => `<rect class="pg-blk" x="${100 + j * 22}" y="14" width="20" height="30" rx="4" fill="${j % 2 ? '#7ba3ec' : '#df9c20'}"/>`).join('');
   return `
@@ -145,7 +148,9 @@ export function initPigeon(section, { reduced }) {
     nodes: qa('.pg-node'), edges: qa('.pg-edge'), edgesOn: qa('.pg-edge-on'), tokens: qa('.pg-tk'),
     union: q('.pg-union'), duty: q('.pg-duty'),
   };
-  const nodeParts = e.nodes.map((n) => ({ g: n, act: q('.pg-act', n), pulse: q('.pg-pulse', n), badge: q('.pg-badge', n) }));
+  const nodeParts = e.nodes.map((n) => ({ g: n, act: q('.pg-act', n), pulse: q('.pg-pulse', n), badge: q('.pg-badge', n), ban: q('.pg-ban', n), flash: q('.pg-flash', n), sleep: q('.pg-sleep', n) }));
+  const scr = (k) => nodeParts.map((p) => p[k]).filter(Boolean);
+  gsap.set([...scr('ban'), ...scr('flash'), ...scr('sleep')], { opacity: 0 });
   const syncIcon = q('.icB');
 
   // --- initial states ---
@@ -244,6 +249,10 @@ export function initPigeon(section, { reduced }) {
       tl.fromTo(p.badge, { scale: 0 }, { scale: 1, duration: 0.012, ease: 'back.out(2.5)' }, t1);
       fade(p.act, [t1, t1 + 0.01], 0, 1);
       tl.fromTo(p.pulse, { attr: { r: 50 }, opacity: 0.8 }, { attr: { r: 96 }, opacity: 0, duration: 0.035, ease: 'power2.out' }, t1);
+      if (p.flash) {
+        tl.fromTo(p.flash, { opacity: 0.9 }, { opacity: 0, duration: 0.02, ease: 'power1.in' }, t1);
+        tl.fromTo(p.ban, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.01, ease: 'back.out(2)' }, t1 + 0.004);
+      }
     }
   });
 
@@ -266,7 +275,10 @@ export function initPigeon(section, { reduced }) {
 
   // 6. battery-aware: awake only while there is news, then back to listening
   focus([0.77, 0.795], { z: 0.62, fx: 500, fy: 380 });
-  nodeParts.forEach((p, i) => fade(p.act, [0.785 + HOPS_FROM_ORIGIN[i] * 0.012, 0.8 + HOPS_FROM_ORIGIN[i] * 0.012], 1, 0));
+  nodeParts.forEach((p, i) => {
+    fade(p.act, [0.785 + HOPS_FROM_ORIGIN[i] * 0.012, 0.8 + HOPS_FROM_ORIGIN[i] * 0.012], 1, 0);
+    if (p.sleep) fade(p.sleep, [0.79 + HOPS_FROM_ORIGIN[i] * 0.012, 0.81 + HOPS_FROM_ORIGIN[i] * 0.012], 0, 0.72); // screens go to sleep
+  });
   focus([0.835, 0.855], { z: 1, fx: 500, fy: 570 });
   tl.fromTo(e.duty, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.014, ease: 'power2.out' }, 0.84);
   const blocks = qa('.pg-blk', e.duty), cursor = q('.pg-cursor', e.duty), legend = q('.pg-legend', e.duty);
@@ -287,5 +299,5 @@ export function initPigeon(section, { reduced }) {
 
   tl.eventCallback('onUpdate', placeCam);
   ScrollTrigger.addEventListener('refresh', placeCam);
-  pinScene(section, tl, { length: 10, hold: 0.03, captions: [[0, 0.78], [0.78, 1.03]], poster: 0.644, reduced, stacked: true });
+  pinScene(section, tl, { length: 10, hold: 0.03, captions: [[0, 0.78], [0.78, 1.03]], poster: 0.644, reduced, stacked: true, glass: screen });
 }

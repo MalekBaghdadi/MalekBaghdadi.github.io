@@ -155,6 +155,16 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-
 .dev-l { left: 0; }
 .dev-r { right: 0; }
 .dev figcaption { position: absolute; left: 0; right: 0; top: calc(100% + 10px); text-align: center; font-weight: 700; font-size: 0.9rem; opacity: 0; }
+/* hero.js: a light that runs across each screen as it comes on (it is 2.2 screens wide, slid from off one side to off
+   the other), a contact shadow where each device meets the page, and a slow float while the hero is on screen (the
+   `translate` property, so it never fights the scroll's `transform`) */
+.glare { position: absolute; top: 0; bottom: 0; left: -60%; right: -60%; pointer-events: none; background: linear-gradient(100deg, transparent 41%, rgba(255, 255, 255, 0.3) 48%, rgba(255, 255, 255, 0.07) 53%, transparent 59%); }
+.dev-floor { position: absolute; z-index: -1; left: -10%; right: -10%; bottom: -6%; height: 8%; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, rgba(15, 22, 51, 0.4), rgba(15, 22, 51, 0)); }
+.dev.amb { animation-name: dev-float; animation-duration: 6.4s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.dev-l.amb { animation-duration: 7.1s; animation-delay: -2.3s; }
+.dev-r.amb { animation-duration: 7.7s; animation-delay: -4.6s; }
+@keyframes dev-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+.hero.scrolling .dev.amb { animation-play-state: paused; }
 
 /* Scenes: one pinned stage each, tinted by --scene-*. The end of each scene turns its colour into the next one's. */
 .scene { position: relative; background: var(--scene-bg); color: var(--scene-fg); overflow: clip; }
@@ -265,7 +275,11 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
 .skills dt { font-weight: 700; }
 .skills dd { margin: 0; max-width: 64ch; }
 
-.contact { background: var(--ink); color: var(--concrete); padding: clamp(56px, 10vw, 128px) var(--gutter); }
+.contact { position: relative; overflow: hidden; background: var(--ink); color: var(--concrete); padding: clamp(56px, 10vw, 128px) var(--gutter); }
+.contact > :not(.backdrop) { position: relative; z-index: 1; } /* over the signal's rings (hero-waves.js) */
+/* sections.js: the title highlighter (the hero's), and the skills one by one */
+.entry h3 .hl { background: linear-gradient(var(--hl), var(--hl)) no-repeat 0 90% / 100% 36%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.skills .tok { display: inline-block; }
 .contact h2 { font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem); font-weight: 800; margin-bottom: clamp(24px, 4vw, 48px); }
 /* The page ends back online (sections.js): the hero's bars, reconnecting. Without motion it simply reads "Back online". */
 .reconnect { display: flex; align-items: center; gap: 0.6rem; margin: calc(-1 * clamp(10px, 2vw, 28px)) 0 clamp(24px, 4vw, 44px); font-weight: 500; }
@@ -285,6 +299,17 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
 .runner-block svg { display: block; }
 .runner-coin { position: absolute; left: 50%; top: -8px; width: 14px; height: 14px; margin-left: -7px; background: var(--flare); opacity: 0; }
 .reduced #games { padding-bottom: clamp(48px, 9vw, 112px); }
+.runner-cloud { position: absolute; left: 0; bottom: 92px; opacity: 0.9; }
+.runner-cloud:nth-of-type(2) { bottom: 112px; opacity: 0.7; }
+.runner-cloud:nth-of-type(3) { bottom: 80px; opacity: 0.8; }
+.runner-cloud svg, .runner-cloth svg { display: block; }
+.runner-flag { position: absolute; right: 0; bottom: 3px; width: 24px; }
+.runner-pole { position: absolute; left: 0; bottom: 0; width: 3px; height: 100%; background: var(--ink-2); }
+.runner-cloth { position: absolute; left: 3px; }
+.runner-dust { position: absolute; left: 0; bottom: 4px; width: 6px; height: 6px; background: color-mix(in srgb, var(--ink) 30%, transparent); opacity: 0; }
+.runner-score { position: absolute; right: 40px; bottom: 96px; display: flex; align-items: center; gap: 0.45rem; margin: 0; font: 700 0.95rem / 1 var(--font-body); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.runner-score i { width: 11px; height: 11px; background: var(--flare); transform: rotate(45deg); }
+.runner-score.full { color: var(--flare); }
 
 .contact dl { display: grid; grid-template-columns: minmax(6rem, 9rem) minmax(0, 1fr); gap: 0.9rem 1.5rem; margin: 0; }
 .contact dt { color: color-mix(in srgb, var(--concrete) 70%, transparent); }
@@ -430,6 +455,7 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
   .dev-phone { width: 36%; bottom: 0; }
   .dev-l { left: 6%; }
   .dev-r { right: 6%; }
+  .dev-tab .dev-floor { display: none; } /* the tablet stands above the phones here, not on the page */
   .trio-line { top: max(13%, 7.5rem); } /* clear of the nav, which wraps to three rows here */
 }
 /* Portrait tablets: side by side, lifted into the middle of the screen. */

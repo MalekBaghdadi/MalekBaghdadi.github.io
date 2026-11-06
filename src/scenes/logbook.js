@@ -18,8 +18,8 @@ export function initLogbook(section, { reduced }) {
   const mount = section.querySelector('[data-device]');
   const { w, h, duration, marks, frames } = manifest;
   mount.innerHTML = `
-    <div class="lb-phone"><canvas width="${w}" height="${h}" aria-hidden="true"></canvas></div>
-    <ol class="lb-chapters" aria-hidden="true">${CHAPTERS.map((c) => `<li><i class="on-dot"></i><b>${c.title}</b><span>${c.note}</span></li>`).join('')}</ol>`;
+    <div class="lb-phone"><i class="lb-rays"></i><i class="lb-pool"></i><canvas width="${w}" height="${h}" aria-hidden="true"></canvas><span class="lb-glass"></span></div>
+    <ol class="lb-chapters" aria-hidden="true"><i class="lb-line"></i>${CHAPTERS.map((c) => `<li><i class="on-dot"></i><b>${c.title}</b><span>${c.note}</span></li>`).join('')}</ol>`;
   const canvas = mount.querySelector('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -72,19 +72,37 @@ export function initLogbook(section, { reduced }) {
   // The chapter marker follows the recording's marks.
   const dots = [...mount.querySelectorAll('.on-dot')];
   const rows = [...mount.querySelectorAll('.lb-chapters li')];
+  const list = mount.querySelector('.lb-chapters'), line = mount.querySelector('.lb-line');
+  // how far down the list's line each chapter's dot sits (0..1), for the line that fills from dot to dot
+  const reach = (i) => {
+    const li = rows[Math.min(i, rows.length - 1)], dot = li.offsetTop + li.querySelector('.on-dot').offsetTop + 6;
+    return Math.max(0, Math.min(1, (dot - line.offsetTop) / Math.max(1, line.offsetHeight)));
+  };
   gsap.set(dots, { opacity: 0 });
   gsap.set(rows, { opacity: 0.45 });
+  gsap.set(line, { scaleY: 0, transformOrigin: '50% 0' });
   CHAPTERS.forEach((c, i) => {
     const a = marks[c.from] / duration;
     const b = i + 1 < CHAPTERS.length ? marks[CHAPTERS[i + 1].from] / duration : 1.03;
     const fade = 0.012;
-    tl.fromTo(dots[i], { opacity: 0 }, { opacity: 1, duration: fade }, Math.max(0, a - fade));
-    tl.fromTo(rows[i], { opacity: 0.45 }, { opacity: 1, duration: fade }, Math.max(0, a - fade));
+    // the active chapter steps forward a little as its dot lights
+    tl.fromTo(dots[i], { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: fade, ease: 'back.out(3)' }, Math.max(0, a - fade));
+    tl.fromTo(rows[i], { opacity: 0.45, x: 0 }, { opacity: 1, x: 8, duration: fade, ease: 'power2.out' }, Math.max(0, a - fade));
     if (i + 1 < CHAPTERS.length) {
       tl.fromTo(dots[i], { opacity: 1 }, { opacity: 0, duration: fade }, b - fade);
-      tl.fromTo(rows[i], { opacity: 1 }, { opacity: 0.45, duration: fade }, b - fade);
+      tl.fromTo(rows[i], { opacity: 1, x: 8 }, { opacity: 0.45, x: 0, duration: fade }, b - fade);
+      // and the line runs on down to the next one while this chapter plays
+      tl.fromTo(line, { scaleY: () => reach(i) }, { scaleY: () => reach(i + 1), duration: b - a - fade }, a);
     }
   });
+
+  // When the card is revealed, its light spills out of the phone: rays turn slowly behind it until it is collected.
+  const rays = mount.querySelector('.lb-rays');
+  const [reveal, collected] = [marks.reveal / duration, marks.collected / duration];
+  gsap.set(rays, { opacity: 0 });
+  tl.fromTo(rays, { opacity: 0, scale: 0.55 }, { opacity: 1, scale: 1, duration: 0.03, ease: 'power2.out' }, reveal - 0.004);
+  tl.fromTo(rays, { rotation: 0 }, { rotation: 55, duration: collected - reveal + 0.02 }, reveal - 0.004);
+  tl.fromTo(rays, { opacity: 1 }, { opacity: 0, duration: 0.025 }, collected);
 
   // behind the phone, a year of streaks filling in (logbook-streaks.js): full-bleed on wide screens, in the device on phones
   const holder = document.createElement('div');
@@ -95,5 +113,5 @@ export function initLogbook(section, { reduced }) {
   ScrollTrigger.addEventListener('refresh', floor.redraw); // refresh renders the timeline with events muted
 
   if (reduced) load(); // the still needs its frame without waiting to scroll near
-  pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.3], [0.3, 1.03]], poster: 0.515, reduced, stacked: true });
+  pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.3], [0.3, 1.03]], poster: 0.515, reduced, stacked: true, glass: mount.querySelector('.lb-glass') });
 }

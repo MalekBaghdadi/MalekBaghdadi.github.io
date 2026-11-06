@@ -1,6 +1,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { splitChars, splitWords } from './split.js';
+import { vh, anticipatePin } from './viewport.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,14 +14,15 @@ gsap.registerPlugin(ScrollTrigger);
  *
  * @param {HTMLElement} section
  * @param {gsap.core.Timeline} tl   the scene's beats, positioned in 0..1
- * @param {{length?: number, hold?: number, captions?: [number, number][], poster?: number, reduced?: boolean, stacked?: boolean}} opts
+ * @param {{length?: number, hold?: number, captions?: [number, number][], poster?: number, reduced?: boolean, stacked?: boolean, glass?: Element}} opts
  *   length   scroll distance in viewport heights
  *   hold     extra timeline after 1.0 during which the last frame just stays on screen
  *   captions [start, end] timeline positions for each caption <li>, in order
  *   poster   timeline position shown as the still when motion is off
  *   stacked  the next section overlaps this one's last screen (CSS margin-top: -100svh) and slides over it
+ *   glass    the device's screen (positioned, clipping): a light runs across it as the device stands up
  */
-export function pinScene(section, tl, { length = 5, hold = 0, captions = [], poster = 0.85, reduced = false, stacked = false } = {}) {
+export function pinScene(section, tl, { length = 5, hold = 0, captions = [], poster = 0.85, reduced = false, stacked = false, glass } = {}) {
   const stage = section.querySelector('.stage');
   const bar = section.querySelector('.progress i');
   const hint = section.querySelector('.hint');
@@ -36,6 +38,10 @@ export function pinScene(section, tl, { length = 5, hold = 0, captions = [], pos
   tl.fromTo(title, { fontStretch: '55%' }, { fontStretch: '125%', duration: 0.04, stagger: 0.004, ease: 'power2.out', immediateRender: true }, 0);
   const note = section.querySelector('.note');
   if (note) tl.fromTo(note, { opacity: 0 }, { opacity: 1, duration: 0.02, immediateRender: true }, 0.04); // only once the device stands upright
+  if (glass) { // the room's light catches the glass as it comes upright (the hero's devices do the same)
+    const glare = glass.appendChild(Object.assign(document.createElement('i'), { className: 'glare' }));
+    tl.fromTo(glare, { xPercent: -36 }, { xPercent: 36, duration: 0.06, ease: 'power1.inOut', immediateRender: true }, 0.012);
+  }
 
   items.forEach((li, i) => {
     const [a, b] = captions[i] ?? [0, 1];
@@ -54,7 +60,8 @@ export function pinScene(section, tl, { length = 5, hold = 0, captions = [], pos
     dim.className = 'dim';
     stage.append(dim);
     tl.fromTo(dim, { opacity: 0 }, { opacity: 0.6, duration: over, ease: 'power1.in' }, end);
-    tl.fromTo(section.querySelector('.device-wrap'), { scale: 1 }, { scale: 0.9, duration: over, ease: 'power1.in' }, end);
+    // pushed back, the device also lies down a little, as the hero's do: it goes back into the page it stood up from
+    tl.fromTo(section.querySelector('.device-wrap'), { scale: 1, rotateX: 0 }, { scale: 0.9, rotateX: 12, transformPerspective: 1600, transformOrigin: '50% 80%', duration: over, ease: 'power1.in' }, end);
     tl.fromTo([copy, ...chrome], { opacity: 1, y: 0 }, { opacity: 0.25, y: -30, duration: over, ease: 'power1.in' }, end);
   }
   tl.set({}, {}, end + over); // pad so progress maps onto the whole scene
@@ -68,11 +75,11 @@ export function pinScene(section, tl, { length = 5, hold = 0, captions = [], pos
   ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: () => `+=${innerHeight * length}`,
+    end: () => `+=${vh() * length}`,
     pin: stage,
     scrub: 0.4,
     animation: tl,
-    anticipatePin: 1,
+    anticipatePin: anticipatePin(),
     invalidateOnRefresh: true,
     onUpdate: (self) => { bar.style.transform = `scaleX(${self.progress})`; },
   });

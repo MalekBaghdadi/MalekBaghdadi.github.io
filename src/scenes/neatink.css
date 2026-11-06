@@ -96,7 +96,13 @@
 .ni-menu { position: absolute; right: 20px; top: 88px; width: 210px; padding: 8px 0; border-radius: 14px; background: #f0edf1; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28); }
 .ni-menu div { height: 46px; display: flex; align-items: center; padding: 0 18px; font-size: 16px; }
 .ni-menu div.hot { background: #dee0ff; }
-.ni-snack { position: absolute; left: 50%; bottom: 28px; translate: -50% 0; display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-radius: 14px; background: #303034; color: #f2f0f4; font-size: 15px; }
+.ni-snack { position: absolute; left: 50%; bottom: 28px; translate: -50% 0; display: grid; padding: 14px 22px; border-radius: 14px; background: #303034; color: #f2f0f4; font-size: 15px; }
+.ni-snack > span { grid-area: 1 / 1; display: flex; align-items: center; gap: 14px; white-space: nowrap; }
+.ni-snack-b .ni-i { color: #9ee6a8; }
+/* Convert's light along each line (neatink.js), and the sparkles off "Fix all" */
+.ni-sweep { pointer-events: none; }
+.ni-sparks { position: absolute; right: 112px; top: 50%; width: 0; height: 0; }
+.ni-spark { position: absolute; left: -15px; top: -15px; overflow: visible; }
 .ni-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.3); border-top-color: #bbc3ff; }
 .ni-ripple { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: rgba(75, 87, 169, 0.4); pointer-events: none; opacity: 0; }
 .ni-penlayer { position: absolute; inset: 0; width: 1280px; height: 800px; pointer-events: none; overflow: visible; }
@@ -116,6 +122,7 @@
 .ni-rules i { position: absolute; left: 0; right: 0; height: 1px; background: rgba(187, 195, 255, 0.075); transform-origin: 0 50%; }
 .ni-rules b { position: absolute; top: 0; bottom: 0; left: calc(var(--gutter) * 0.45); width: 1px; background: rgba(255, 138, 128, 0.16); transform-origin: 50% 0; }
 .ni-word { position: absolute; overflow: visible; fill: none; stroke: #bbc3ff; stroke-linecap: round; stroke-linejoin: round; opacity: 0.11; }
+.ni-scan { position: absolute; top: 0; bottom: 0; left: 0; width: min(36vw, 480px); pointer-events: none; background: linear-gradient(90deg, rgba(187, 195, 255, 0) 0%, rgba(187, 195, 255, 0.05) 55%, rgba(187, 195, 255, 0.17) 95%, rgba(187, 195, 255, 0) 100%); }
 .ni-word.w1 { left: 4%; top: 6%; width: min(22vw, 300px); stroke-width: 2.1; }
 .ni-word.w2 { left: 3%; bottom: 8%; width: min(30vw, 420px); stroke-width: 2.6; }
 .ni-word.w3 { right: 4%; top: 1.5%; width: min(18vw, 250px); stroke-width: 2.6; }

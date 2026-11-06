@@ -14,7 +14,8 @@ const FAR = 2.6;
 const SPREAD = 1.7; // how much wider than the canvas the near edge is
 
 export function buildStreaks() {
-  return '<div class="lb-floor backdrop" aria-hidden="true"><div class="lb-ground"><canvas></canvas><i class="lb-today"></i></div></div>';
+  return `<div class="lb-floor backdrop" aria-hidden="true"><div class="lb-ground"><canvas></canvas><i class="lb-today"></i></div>
+    <p class="lb-count"><b>0</b><span>days logged</span><em><i>0</i> in a row</em></p></div>`;
 }
 
 /** Adds the year's filling to the scene timeline `tl` (positions 0..1) and returns `relayout` / `redraw`. */
@@ -23,6 +24,11 @@ export function initStreaks(el, tl) {
   const ctx = canvas.getContext('2d');
   const r = rng(5);
   const level = Array.from({ length: N }, (_, i) => (i > N - 50 ? 2 + Math.floor(r() * 3) : r() < 0.17 ? 0 : 1 + Math.floor(r() * 4)));
+  // the tally in the corner, in the app's own words: days logged so far, and the streak running into today
+  const logged = [0], streak = [0];
+  level.forEach((l, i) => { logged.push(logged[i] + (l > 0)); streak.push(l > 0 ? streak[i] + 1 : 0); });
+  const count = el.querySelector('.lb-count'), countN = count.querySelector('b'), countS = count.querySelector('em i');
+  let counted = -1;
 
   let w = 0, h = 0, dpr = 1, shown = -1;
   const state = { n: 0 };
@@ -50,6 +56,12 @@ export function initStreaks(el, tl) {
   // neighbours, which share edge pixels where the far rows are tight; so the next day is an element laid over it.)
   function render() {
     const n = Math.max(0, Math.min(N, Math.round(state.n)));
+    if (n !== counted) {
+      counted = n;
+      countN.textContent = logged[n];
+      countS.textContent = streak[n];
+      count.classList.toggle('hot', streak[n] >= 7); // a week or more in a row: the streak lights up
+    }
     if (n === shown || !w) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (n < shown || shown < 0) {

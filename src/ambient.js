@@ -7,6 +7,7 @@
 // shorthand, which would reset the play state): style.css keeps it paused unless an ancestor is `.is-live`.
 
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { vh } from './viewport.js';
 
 export const still = new URLSearchParams(location.search).has('still');
 
@@ -18,7 +19,7 @@ export const still = new URLSearchParams(location.search).has('still');
  */
 export function liveWhileVisible(section, screens, onChange) {
   const set = (live) => { section.classList.toggle('is-live', live); onChange?.(live); };
-  ScrollTrigger.create({ trigger: section, start: 'top bottom', end: () => `+=${innerHeight * (screens + 1)}`, onToggle: (self) => set(self.isActive) });
+  ScrollTrigger.create({ trigger: section, start: 'top bottom', end: () => `+=${vh() * (screens + 1)}`, onToggle: (self) => set(self.isActive) });
 }
 
 /**
