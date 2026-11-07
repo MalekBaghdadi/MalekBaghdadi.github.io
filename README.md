@@ -72,15 +72,16 @@ switched off by accident, and that silently turned every demo into a still on Ma
   timestamp, so phones get even whole-pixel steps; it does not go through Lenis every frame, which used to rewrite
   Lenis's classes on `<html>` twice a frame.
 - `src/game.js` and `src/game/bugrun.js`: **Play Bug Run**, the arcade key above the pixel runner in Game development,
-  opens a small game in a window over the page. Jump the bugs (Space, ↑ or a tap; hold for a higher jump), grab the
-  coins, bump the **?** blocks from below for five more, jump the low flies and run under the high ones. It speeds up
-  every 500 points ("FASTER!"), and the sky turns from day to sunset, night and dawn as the score climbs. The best score
-  and the sound switch (off to start with; the blips are made with WebAudio, there are no sound files) are remembered in
-  `localStorage`. It is built to stay light: its code (5 KB gzipped) is downloaded only when Play is first pressed; it
-  draws a 256×112 canvas (200 wide on phones) scaled up by whole device pixels, so the pixels stay crisp with nothing
-  to smooth; the game runs in fixed 120 Hz steps with pooled objects (no garbage while playing); and it runs only while
-  its window is open and the tab is visible. While it is open the page behind holds still (Lenis stopped, auto-scroll
-  paused); Esc, ✕ or a click outside closes it.
+  opens the runner's course up into a small game, right there in the page (no window over it, nothing locked). Jump
+  the bugs (Space, ↑ or a tap; hold for a higher jump), grab the coins, bump the **?** blocks from below for five more,
+  jump the low flies and run under the high ones. It speeds up every 500 points ("FASTER!"), and the sky turns from day
+  to sunset, night and dawn as the score climbs. ✕ or Esc folds it back into the course. A press anywhere else on the
+  page pauses it, and so does scrolling it away; a tap or Space carries on. The best score and the sound switch (off to
+  start with; the blips are made with WebAudio, there are no sound files) are remembered in `localStorage`. It is built
+  to stay light: its code (5 KB gzipped) is fetched only as a hand reaches for Play; it draws a canvas 112 pixels high
+  and as wide as the course has room for (200 to 480), scaled up by whole device pixels so the pixels stay crisp; the
+  game runs in fixed 120 Hz steps with pooled objects (no garbage while playing); and it draws only while it is open,
+  on screen and running. Every gap the course lays out can be cleared: a bot plays it in `tools/game-test.mjs`.
 - Small touches under a mouse: the nav and footer links draw their underlines in, buttons catch a light, an
   experience entry's dates slide over in blue, skills light up, and a soft light follows the mouse around the dark
   footer. The work timeline's dot sends out a ping as it rides down the rail.
@@ -122,7 +123,7 @@ node tools/perf.mjs 390 844 neatink --cpu=4                                 # fr
 node tools/wheel.mjs                                                        # real wheel scrolling + the demos link
 node tools/autoplay-test.mjs                                                # auto-scroll: pace, speed slider, take-over, keyboard, end, phone taps and even steps
 node tools/end-state.mjs                                                    # nothing left half-animated at the page end
-node tools/game-test.mjs                                                    # Bug Run: loaded on demand, a bot plays 25 s, frame times, the four skies, the page given back
+node tools/game-test.mjs                                                    # Bug Run in the page: opens in place, keys don't scroll, buttons, a bot plays, pause, close
 node tools/eggs-test.mjs                                                    # the Easter eggs, found the way a visitor would, desktop and phone
 ```
 

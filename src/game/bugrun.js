@@ -1,12 +1,14 @@
-// Bug Run: the little game behind the Play button in Game development. One button: jump the bugs, grab the coins,
-// bump the "?" blocks from below. The sky turns from day to sunset to a starry night and back as the score climbs.
+// Bug Run: the little game that opens up in the page when Play is pressed in Game development. One button: jump the
+// bugs, grab the coins, bump the "?" blocks from below. The sky turns from day to sunset to a starry night and back as
+// the score climbs.
 //
-// It is downloaded only when someone presses Play (game.js), drawn on a 256 x 112 canvas that the page scales up in
-// whole pixels, and asleep whenever its window is closed, hidden or out of focus: it costs the site nothing until it is
-// played, and very little while it is. Nothing is created per frame (bugs, coins and sparks are reused).
+// It is downloaded only when someone reaches for Play (game.js), drawn on a canvas 112 art pixels high that the page
+// scales up in whole pixels, as wide as the page has room for, and asleep whenever it is closed, scrolled away, paused
+// or the tab is hidden: it costs the site nothing until it is played, and very little while it is. Nothing is created
+// per frame (bugs, coins and sparks are reused).
 import { FRAMES, BLOCK, PAL } from '../runner.js';
 
-let W = 256; // the world's width in art pixels: 256, or 200 on a narrow phone (bigger pixels, a little less look-ahead)
+let W = 256; // the world's width in art pixels: whatever fits the page (game.js), from about 200 on a phone to 480
 const H = 112, GROUND = 92; // its height, and the top of the grass
 const GRAVITY = 900, JUMP = 262, CUT = 110; // px/s², take-off speed, and what letting go early cuts a jump to
 const COYOTE = 0.08, BUFFER = 0.13; // a jump still counts just after leaving the ground, and just before landing
@@ -79,8 +81,10 @@ const SKYRGB = SKY.map((s) => Object.fromEntries(Object.entries(s).map(([k, v]) 
 const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
 
 /**
- * Mounts the game in `screen` (an element holding a canvas) and wires its controls. Returns { resume, pause, setSound }.
- * `hud.overlay(state, info)` is told when to show the title, pause or game-over card.
+ * Mounts the game in `screen` (an element holding a canvas) and wires its controls. `width` is the world's width in art
+ * pixels. Returns { start, stop, pause, quit, resize, setSound, sound }: start and stop wake it and put it to sleep (game.js
+ * does, as it is scrolled to and away), pause holds a run, quit ends it (closed). `hud.overlay(state, info)` is told when to show
+ * the title, pause or game-over card, and `hud.want()` when the game is pressed while it is asleep (half off screen).
  */
 export function mountGame(screen, hud, { width = 256 } = {}) {
   W = width;
@@ -95,13 +99,16 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
   // ---- state ----
   const me = { y: GROUND, vy: 0, ground: true, air: 0, buffer: 0, holding: false, dead: false, deadT: 0, frameDist: 0 };
   const pool = (n, make) => Array.from({ length: n }, make);
-  const foes = pool(8, () => ({ on: false, kind: 'bug', x: 0, y: 0, w: 0, h: 0, t: 0, crawl: 0 }));
-  const coins = pool(24, () => ({ on: false, x: 0, y: 0, vx: 0, vy: 0, free: false, t: 0, got: 0 }));
-  const blocks = pool(3, () => ({ on: false, x: 0, y: 0, used: false, bump: 0 }));
-  const sparks = pool(80, () => ({ on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 0, color: '#fff', g: 0 }));
-  const texts = pool(6, () => ({ on: false, x: 0, y: 0, life: 0, str: '' }));
-  const stars = Array.from({ length: 26 }, (_, i) => [(i * 97) % W, 4 + ((i * 53) % 52), (i * 0.37) % 1]);
-  let state = 'title', speed = 70, dist = 0, coinCount = 0, best = +(store.get(KEY_BEST) || 0), score = 0;
+  // (enough of each for the widest world, 480 pixels of course on screen at once)
+  const foes = pool(16, () => ({ on: false, kind: 'bug', x: 0, y: 0, w: 0, h: 0, t: 0 }));
+  const coins = pool(48, () => ({ on: false, x: 0, y: 0, vx: 0, vy: 0, free: false, t: 0, got: 0 }));
+  const blocks = pool(4, () => ({ on: false, x: 0, y: 0, used: false, bump: 0 }));
+  const sparks = pool(120, () => ({ on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 0, color: '#fff', g: 0 }));
+  const texts = pool(8, () => ({ on: false, x: 0, y: 0, life: 0, str: '' }));
+  let stars = [];
+  const sky = () => { stars = Array.from({ length: Math.round(W / 9) }, (_, i) => [(i * 97) % W, 4 + ((i * 53) % 52), (i * 0.37) % 1]); };
+  sky();
+  let state = 'title', speed = 78, dist = 0, coinCount = 0, best = +(store.get(KEY_BEST) || 0), score = 0;
   let next = 60, shake = 0, flash = 0, hitstop = 0, banner = 0, bannerText = '', nextBanner = 500, newBest = false;
   let scroll = 0, time = 0, deadLock = 0;
 
@@ -118,7 +125,7 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
   function reset() {
     Object.assign(me, { y: GROUND, vy: 0, ground: true, air: 0, buffer: 0, dead: false, deadT: 0 });
     [foes, coins, blocks, sparks, texts].forEach((a) => a.forEach((o) => { o.on = false; }));
-    speed = 70; dist = 0; coinCount = 0; score = 0; next = 80; shake = 0; flash = 0; hitstop = 0; banner = 0; nextBanner = 500; newBest = false;
+    speed = 78; dist = 0; coinCount = 0; score = 0; next = 80; shake = 0; flash = 0; hitstop = 0; banner = 0; nextBanner = 500; newBest = false;
   }
 
   // ---- sound: tiny synthesised blips, off until the visitor turns them on ----
@@ -140,22 +147,35 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
 
   // ---- input: one button (space, up, W, a click or a tap), held for a higher jump ----
   function press() {
-    if (state === 'paused') { setState('play'); return; } // back where it was, without a jump
+    if (!awake) { hud.want?.(); return; } // asleep, half off screen: bring it on first
+    if (state === 'paused') { setState('play'); kick(); return; } // back where it was, without a jump
     if (state === 'title') { reset(); setState('play'); } // the first press starts the run with a jump
     else if (state === 'dead') { if (deadLock > 0) return; reset(); setState('play'); }
     me.holding = true;
     me.buffer = BUFFER;
+    kick();
   }
   function release() {
     me.holding = false;
     if (!me.ground && me.vy < -CUT) me.vy = -CUT; // let go early: a shorter hop
   }
   const KEYS = new Set(['Space', 'ArrowUp', 'KeyW', 'KeyX', 'KeyJ']);
-  const down = (e) => { if (KEYS.has(e.code)) { e.preventDefault(); if (!e.repeat) press(); } };
-  const up = (e) => { if (KEYS.has(e.code)) release(); };
-  screen.addEventListener('keydown', down);
-  screen.addEventListener('keyup', up);
-  screen.addEventListener('pointerdown', (e) => { if (e.button > 0) return; e.preventDefault(); screen.focus({ preventScroll: true }); press(); });
+  const mod = (e) => e.ctrlKey || e.metaKey || e.altKey;
+  screen.addEventListener('keydown', (e) => { if (KEYS.has(e.code) && !mod(e)) { e.preventDefault(); if (!e.repeat) press(); } });
+  screen.addEventListener('keyup', (e) => { if (KEYS.has(e.code)) release(); });
+  // A mouse or pen acts the moment it is pressed. So does a finger while the run is on (and the game holds the touch,
+  // style.css, so a held jump can't scroll the page). Otherwise a finger starts or restarts the run with a tap, on its
+  // click: a swipe across the game on the way down the page scrolls past it instead of starting it.
+  let touch = false;
+  screen.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    touch = e.pointerType === 'touch';
+    screen.focus({ preventScroll: true });
+    if (touch && state !== 'play') return;
+    e.preventDefault();
+    press();
+  });
+  screen.addEventListener('click', () => { if (touch && state !== 'play') { press(); release(); } });
   addEventListener('pointerup', release);
   addEventListener('pointercancel', release);
 
@@ -168,12 +188,14 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
   function spawn() {
     const x = W + 8, sc = score, roll = Math.random();
     const gap = () => speed * (2 * JUMP / GRAVITY) + 26 + Math.random() * (90 - Math.min(40, sc / 40)); // always clearable
-    const foe = (kind, fx, fy) => { const f = take(foes); if (f) Object.assign(f, { on: true, kind, x: fx, y: fy, w: kind === 'bug' ? 12 : 11, h: 8, t: Math.random(), crawl: kind === 'bug' ? 10 + Math.random() * 10 : 0 }); };
+    // everything moves with the ground, so the gaps laid out here are the gaps that arrive (bugs that crawled at their
+    // own speeds caught up with each other on a wide course, and closed a gap too short to land in)
+    const foe = (kind, fx, fy) => { const f = take(foes); if (f) Object.assign(f, { on: true, kind, x: fx, y: fy, w: kind === 'bug' ? 12 : 11, h: 8, t: Math.random() }); };
     const coinAt = (cx, cy) => { const c = take(coins); if (c) Object.assign(c, { on: true, x: cx, y: cy, vx: 0, vy: 0, free: false, t: Math.random() * 4, got: 0 }); };
     if (sc > 120 && roll < 0.12) { // a "?" block up where only a good jump reaches it
       const b = take(blocks);
       if (b) Object.assign(b, { on: true, x, y: GROUND - 50, used: false, bump: 0 });
-      next = gap() * 0.7;
+      next = gap() + 40; // room after it: a jump for whatever comes next mustn't bump it (bumped, you drop) onto a bug
       return;
     }
     if (roll < 0.22) { // a row of coins, low or high
@@ -272,7 +294,7 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
     const px = hitbox.x, py = me.y - hitbox.h;
     for (const f of foes) {
       if (!f.on) continue;
-      f.x -= (v + f.crawl) * dt;
+      f.x -= v * dt;
       f.t += dt;
       if (f.kind === 'fly') f.y += Math.sin(f.t * 6) * 6 * dt; // a little bob
       if (f.x < -16) { f.on = false; continue; }
@@ -375,7 +397,7 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
     ctx.arc(Math.round(ox), Math.round(oy), 7, 0, Math.PI * 2);
     ctx.fill();
     if (i0 === 2 || (i0 === 1 && f > 0.6)) { ctx.fillStyle = mix(A.top, B.top, f); ctx.beginPath(); ctx.arc(Math.round(ox) + 4, Math.round(oy) - 2, 6, 0, Math.PI * 2); ctx.fill(); }
-    for (let k = 0; k < 3; k++) ctx.drawImage(art.cloud, Math.round(((k * 110 + 30 - scroll * (0.12 + k * 0.05)) % (W + 40) + W + 40) % (W + 40) - 20), 10 + k * 13);
+    for (let k = 0, n = Math.ceil(W / 90); k < n; k++) ctx.drawImage(art.cloud, Math.round(((k * 110 + 30 - scroll * (0.12 + (k % 3) * 0.05)) % (W + 40) + W + 40) % (W + 40) - 20), 10 + (k % 3) * 13);
     hills(mix(A.far, B.far, f), GROUND - 14, 10, 0.03, 0.2);
     hills(mix(A.near, B.near, f), GROUND - 4, 8, 0.05, 0.45);
     // ground: grass, a darker edge, earth with pebbles going by
@@ -422,40 +444,51 @@ export function mountGame(screen, hud, { width = 256 } = {}) {
     if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${(flash * 0.7).toFixed(2)})`; ctx.fillRect(0, 0, W, H); }
   }
 
-  // ---- the loop: fixed 120 Hz steps, drawn once a frame, only while the window is open and visible ----
-  let raf = 0, last = 0, acc = 0;
+  // ---- the loop: fixed 120 Hz steps, drawn once a frame. It runs only while the game is awake (open, on screen, the tab
+  // visible: game.js says so with start and stop), and stops by itself while paused or once a crash has played out. ----
+  let raf = 0, last = 0, acc = 0, awake = false, isGold = null;
   function frame(now) {
-    raf = requestAnimationFrame(frame);
+    raf = 0;
     const dt = Math.min(0.1, (now - (last || now)) / 1000);
     last = now;
     acc += dt;
     while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; }
     draw();
+    const still = state === 'paused' || (state === 'dead' && me.deadT > 1.6);
+    if (awake && !still) raf = requestAnimationFrame(frame);
   }
-  function resume() {
-    if (raf) return;
-    art = makeArt(store.get(KEY_GOLD) === '1'); // a cheat code may have been entered since last time
-    white = art.glyph('#ffffff'); ink = art.glyph('#0f1633'); gold = art.glyph('#ffd23f');
-    last = 0;
-    raf = requestAnimationFrame(frame);
-    if (state === 'play') setState('paused');
-    else hud.overlay(state, { score, best, coins: coinCount, newBest });
-    screen.focus({ preventScroll: true });
+  function kick() { if (awake && !raf) { last = 0; acc = 0; raf = requestAnimationFrame(frame); } }
+  function start() {
+    const g = store.get(KEY_GOLD) === '1'; // a cheat code may have been entered since last time
+    if (g !== isGold) { isGold = g; art = makeArt(g); white = art.glyph('#ffffff'); ink = art.glyph('#0f1633'); gold = art.glyph('#ffd23f'); draw(); }
+    awake = true;
+    hud.overlay(state, { score, best, coins: coinCount, newBest });
+    kick();
   }
-  function pause() {
+  function stop() {
+    awake = false;
     cancelAnimationFrame(raf);
     raf = 0;
-    if (state === 'play') setState('paused');
     release();
+    if (state === 'play') { setState('paused'); draw(); }
   }
-  document.addEventListener('visibilitychange', () => { if (document.hidden && raf && state === 'play') setState('paused'); });
-  addEventListener('blur', () => { if (raf && state === 'play') setState('paused'); });
+  function pause() { if (state === 'play') setState('paused'); } // the loop draws the moment it stopped, and rests
+  function quit() { stop(); reset(); setState('title'); draw(); } // closed: the next time it opens, it starts afresh
+  function resize(width) {
+    if (width === W) return;
+    W = width;
+    cv.width = W;
+    ctx.imageSmoothingEnabled = false; // (a resized canvas forgets it)
+    sky();
+    draw();
+  }
+  addEventListener('blur', () => pause()); // another window took the keyboard
   draw();
   if (import.meta.env.DEV) { // for tools/game-test.mjs only (stripped from the build): watch the course, press, skip ahead
     window.__bugrun = {
-      peek: () => ({ state, speed, score, dist, coins: coinCount, y: me.y, ground: me.ground, foes: foes.filter((f) => f.on).map(({ kind, x, y, w, h }) => ({ kind, x, y, w, h })) }),
+      peek: () => ({ state, awake, running: !!raf, W, speed, score, dist, coins: coinCount, y: me.y, vy: me.vy, ground: me.ground, foes: foes.filter((f) => f.on).map(({ kind, x, y, w, h }) => ({ kind, x, y, w, h })), blocks: blocks.filter((b) => b.on).map(({ x, y, used }) => ({ x, y, used })) }),
       press, release, skipTo: (points) => { dist = points * 8; },
     };
   }
-  return { resume, pause, setSound: (on) => { sound = on; store.set(KEY_SOUND, on ? '1' : '0'); }, sound: () => sound };
+  return { start, stop, pause, quit, resize, setSound: (on) => { sound = on; store.set(KEY_SOUND, on ? '1' : '0'); }, sound: () => sound };
 }

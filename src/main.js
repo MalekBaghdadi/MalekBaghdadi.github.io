@@ -52,7 +52,7 @@ initPigeon(document.getElementById('pigeon'), { reduced });
 initLogbook(document.getElementById('logbook'), { reduced });
 initSections({ reduced });
 initAutoScroll({ lenis, reduced });
-initGame({ lenis }); // with motion off too: the game only runs when it is asked for
+initGame({ lenis, reduced }); // with motion off too: the game only runs when it is asked for
 initEggs({ reduced });
 
 // Fonts and frame images change layout; re-measure once everything has settled.
