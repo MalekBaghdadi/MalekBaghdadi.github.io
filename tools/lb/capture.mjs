@@ -19,7 +19,7 @@ try {
   const uid = await signUpUser('demo@logbook.test', 'emulator-only-pass');
   await writeDocs([...demoDocs(uid), ...competeDocs(uid)]);
 
-  browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+  browser = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
   const page = await browser.newPage();
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);

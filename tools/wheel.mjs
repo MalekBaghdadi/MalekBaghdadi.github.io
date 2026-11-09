@@ -3,7 +3,7 @@
 import puppeteer from 'puppeteer-core';
 const url = process.argv[2] ?? 'http://localhost:5199/';
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 const p = await b.newPage();
 await p.setViewport({ width: 1440, height: 900 });
 const errors = [];

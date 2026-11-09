@@ -12,7 +12,7 @@ const OUT = `tools/out/${label}/`;
 mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const mobile = +w < 700;
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
 const p = await b.newPage();
 if (opt.motion === 'off') await p.evaluateOnNewDocument(() => localStorage.setItem('motion', 'off')); // the page's own switch
 await p.setViewport({ width: +w, height: +h, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile });

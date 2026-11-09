@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer-core';
 const [w, h, scene, ...rest] = process.argv.slice(2);
 const opt = Object.fromEntries(rest.map((a) => a.slice(2).split('=')));
 const mobile = +w < 700;
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
 const pg = await b.newPage();
 await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
 await pg.setViewport({ width: +w, height: +h, deviceScaleFactor: mobile ? 2 : 1, isMobile: mobile, hasTouch: mobile });

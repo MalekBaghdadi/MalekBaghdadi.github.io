@@ -16,7 +16,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const mobile = +w < 700;
 
 const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  executablePath: process.env.CHROME ?? process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe',
   headless: true,
   args: ['--no-first-run', '--hide-scrollbars'],
 });

@@ -8,7 +8,7 @@ import manifest from '../src/scenes/logbook-manifest.json' with { type: 'json' }
 const OUT = 'public/hero/';
 mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--hide-scrollbars'] });
 const p = await b.newPage();
 await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
 await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
