@@ -15,6 +15,7 @@ import { initSections } from './sections.js';
 import { initAutoScroll } from './autoscroll.js';
 import { initGame } from './game.js';
 import { initEggs } from './eggs.js';
+import { initVisitor } from './birds.js';
 import { still } from './ambient.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -45,6 +46,9 @@ if (!reduced) {
   gsap.ticker.lagSmoothing(0);
 }
 
+// The footer's last line (the way back to the top) is built first: it is part of the page's height, which the pins
+// below are measured against.
+initVisitor({ reduced, lenis });
 initHero({ reduced });
 // Pinned sections are created in page order so ScrollTrigger measures each pin spacer after the one above it.
 initNeatInk(document.getElementById('neatink'), { reduced });

@@ -14,7 +14,7 @@ for (const font of ['cursive', 'scripts']) {
   y += 30;
 }
 writeFileSync('tools/out/ink-preview.html', `<body style="margin:0;background:#fbf5e6"><svg width="900" height="${y}" viewBox="0 0 900 ${y}">${body}</svg></body>`);
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 const p = await b.newPage(); await p.setViewport({ width: 900, height: y, deviceScaleFactor: 1.5 });
 await p.goto(pathToFileURL('tools/out/ink-preview.html').href); await p.screenshot({ path: 'tools/out/ink-preview.png' }); await b.close();
 console.log('ok', y);

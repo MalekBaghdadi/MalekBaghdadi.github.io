@@ -15,7 +15,7 @@ const SOUK = { x: 146, w: 188 }; // the old market, where the fire is
 const FIRE = { x: 240, y: 212 }; // the fire's base, on the market's second floor
 
 const lit = [[], [], []]; // lit windows by district (filled by skyline())
-const windows = []; // every window's top-left corner
+export const windows = []; // every window's top-left corner (7 x 10, in the city's box); eggs.js lets a visitor switch them on
 
 function skyline() {
   const r = rng(7);
@@ -115,7 +115,8 @@ function skyline() {
 }
 
 // A pigeon, side on, facing right, its feet at (0, 0): wings up, level, down, and folded for sitting.
-const bird = `<svg class="pc-bird" width="24" height="21" viewBox="-12 -16 24 21" overflow="visible" aria-hidden="true">
+// (Exported: birds.js flies the same bird over the rest of the page.)
+export const bird = `<svg class="pc-bird" width="24" height="21" viewBox="-12 -16 24 21" overflow="visible" aria-hidden="true">
   <path d="M-5-5.2L-11.5-6.6-10.8-3.4Z" fill="#77736a"/><path class="w wu" d="M1-6C-1-12-4-15.2-7.4-15.6-4.4-11.2-3.2-8-2-5.4Z" fill="#7f7a70"/>
   <path class="w wm" d="M1.5-5.6C-3-6.8-8-6.8-11.6-5.2-7.6-4.1-3-3.9 0-4.2Z" fill="#7f7a70"/>
   <path class="w wd" d="M1-5C-1-1-3 3-6.4 4.6-4.6 1-3.6-2-2.6-4.6Z" fill="#7f7a70"/>
@@ -168,7 +169,9 @@ function sky() {
     const s = (1.8 + r() * 1.8).toFixed(1);
     stars += `<i class="pc-star amb" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;width:${s}px;height:${s}px;animation-duration:${(2.6 + r() * 3.2).toFixed(1)}s;animation-delay:-${(r() * 5).toFixed(1)}s"></i>`;
   }
-  return `<div class="pc-sky"><svg class="pc-moon" viewBox="0 0 48 48" aria-hidden="true"><defs><mask id="pc-moon-cut"><rect width="48" height="48" fill="#fff"/><circle cx="33" cy="17" r="18" fill="#000"/></mask></defs><circle cx="24" cy="24" r="19" fill="#e9dfc8" mask="url(#pc-moon-cut)"/></svg>${stars}</div>`;
+  // thin night clouds, one of them about to cross the moon; each has a warm underside the fire lights up
+  const clouds = [[1, 13.5, 13], [38, 7, 17], [71, 23, 11], [88, 11, 9]].map(([x, y, w]) => `<i class="pc-cloud" style="left:${x}%;top:${y}%;width:${w}%"><b></b></i>`).join('');
+  return `<div class="pc-sky"><svg class="pc-moon" viewBox="0 0 48 48" aria-hidden="true"><defs><mask id="pc-moon-cut"><rect width="48" height="48" fill="#fff"/><circle cx="33" cy="17" r="18" fill="#000"/></mask></defs><circle cx="24" cy="24" r="19" fill="#e9dfc8" mask="url(#pc-moon-cut)"/></svg>${stars}${clouds}</div>`;
 }
 
 export function buildCity() {
@@ -275,6 +278,13 @@ export function initCity(el, tl) {
   const AMB_PARK = 520, TRUCK_PARK = 352, AMB_R = 6.4, TRUCK_R = 7.57; // wheel radii in city units
   const AMB_IN = 1660 - AMB_PARK, TRUCK_IN = 1700 - TRUCK_PARK, AMB_OUT = AMB_PARK + 160;
   const turn = (dist, r) => -(dist / r) * (180 / Math.PI); // wheels roll with the distance driven (r in city units)
+
+  // Over it all the clouds drift on the wind, the whole way through (the far ones slower), and while the market burns
+  // their undersides catch its light.
+  const clouds = qa('.pc-cloud');
+  clouds.forEach((c, i) => tl.fromTo(c, { xPercent: 0 }, { xPercent: [150, 95, 70, 120][i % 4], duration: 1, ease: 'none', immediateRender: true }, 0));
+  tl.fromTo(qa('.pc-cloud b'), { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.08);
+  tl.fromTo(qa('.pc-cloud b'), { opacity: 1 }, { opacity: 0, duration: 0.12 }, 0.68);
 
   // 1. while the report is typed, a fire takes hold of the market's second floor
   tl.fromTo(fire, { opacity: 0, scale: 0.12 }, { opacity: 1, scale: 0.38, duration: 0.05, ease: 'power1.out' }, 0.05);

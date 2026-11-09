@@ -122,6 +122,7 @@
 .ni-rules i { position: absolute; left: 0; right: 0; height: 1px; background: rgba(187, 195, 255, 0.075); transform-origin: 0 50%; }
 .ni-rules b { position: absolute; top: 0; bottom: 0; left: calc(var(--gutter) * 0.45); width: 1px; background: rgba(255, 138, 128, 0.16); transform-origin: 50% 0; }
 .ni-word { position: absolute; overflow: visible; fill: none; stroke: #bbc3ff; stroke-linecap: round; stroke-linejoin: round; opacity: 0.11; }
+.ni-mark { stroke-width: 1.6; }
 .ni-scan { position: absolute; top: 0; bottom: 0; left: 0; width: min(36vw, 480px); pointer-events: none; background: linear-gradient(90deg, rgba(187, 195, 255, 0) 0%, rgba(187, 195, 255, 0.05) 55%, rgba(187, 195, 255, 0.17) 95%, rgba(187, 195, 255, 0) 100%); }
 .ni-word.w1 { left: 4%; top: 6%; width: min(22vw, 300px); stroke-width: 2.1; }
 .ni-word.w2 { left: 3%; bottom: 8%; width: min(30vw, 420px); stroke-width: 2.6; }

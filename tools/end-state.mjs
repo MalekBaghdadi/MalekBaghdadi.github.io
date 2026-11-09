@@ -3,7 +3,7 @@
 import puppeteer from 'puppeteer-core';
 const url = process.argv[2] ?? 'http://localhost:5199/';
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 let bad = 0;
 for (const [w, h] of [[1440, 900], [390, 844], [360, 640]]) {
   const p = await b.newPage();

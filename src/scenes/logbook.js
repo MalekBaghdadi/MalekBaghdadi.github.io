@@ -111,6 +111,7 @@ export function initLogbook(section, { reduced }) {
   const floor = initStreaks(floorEl, tl);
   placeBackdrop(floorEl, section.querySelector('.stage'), mount, floor.relayout);
   ScrollTrigger.addEventListener('refresh', floor.redraw); // refresh renders the timeline with events muted
+  floor.play(section); // and its days can be logged by hand
 
   if (reduced) load(); // the still needs its frame without waiting to scroll near
   pinScene(section, tl, { length: 9, hold: 0.03, captions: [[0, 0.3], [0.3, 1.03]], poster: 0.515, reduced, stacked: true, glass: mount.querySelector('.lb-glass') });

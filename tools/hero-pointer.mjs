@@ -1,6 +1,6 @@
 // Moves the mouse across the hero name and screenshots it: letters under the pointer should narrow.
 import puppeteer from 'puppeteer-core';
-const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 const p = await b.newPage();
 await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
 await p.setViewport({ width: 1440, height: 900 });
