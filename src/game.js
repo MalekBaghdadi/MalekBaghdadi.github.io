@@ -4,6 +4,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { vh } from './viewport.js';
+import { found } from './hunt.js';
 
 const coarse = () => matchMedia('(hover: none), (pointer: coarse)').matches;
 const ICON_PLAY = '<svg class="amb" viewBox="0 0 5 7" width="10" height="14" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="0" width="1" height="7"/><rect x="1" y="1" width="1" height="5"/><rect x="2" y="2" width="1" height="3"/><rect x="3" y="3" width="1" height="1"/></svg>';
@@ -104,6 +105,7 @@ export function initGame({ lenis, reduced }) {
     screen.dataset.state = state;
     if (state === 'play') { card.hidden = true; return; }
     card.hidden = false;
+    if (state === 'dead') found('arcade', '🕹️ <b>On the board.</b> Your best score stays on this device.', 0, true);
     const go = coarse() ? 'Tap' : '<kbd>Space</kbd>';
     card.innerHTML = state === 'title'
       ? `<strong>Bug Run</strong><p>Jump the bugs, grab the coins, bump the <b>?</b> blocks from below.</p><p class="br-cta">${go} to start</p>`

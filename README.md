@@ -85,6 +85,26 @@ switched off by accident, and that silently turned every demo into a still on Ma
 - Small touches under a mouse: the nav and footer links draw their underlines in, buttons catch a light, an
   experience entry's dates slide over in blue, skills light up, and a soft light follows the mouse around the dark
   footer. The work timeline's dot sends out a ping as it rides down the rail.
+- Things to press, in every part of the page. None of them follows the scroll, so each rides its own channel and
+  leaves the scroll's alone: the CSS `translate` / `rotate` / `scale` properties (never the `transform` GSAP owns), or
+  an extra input to a value the scroll already computes.
+  - The hero (`src/hero.js`, `src/hero-play.js`, `src/hero-waves.js`): the signal bars send a ping, one bold ring out
+    of the bars that squeezes each letter of the name as it crosses it (with the connection scrolled away, the ring
+    breaks up a third of the way out and the bars shake their head); the clock flips to the visitor's own time and how
+    far it is from Beirut's; the name's letters can be pulled like rubber, neighbours dragged along, and snap back;
+    the three devices drift after the mouse, the phones further than the tablet.
+  - `src/birds.js`: the Pigeon scene's bird, out of its scene. Leave the page alone at the top and one lands on the
+    "l" of Malek (found from the letter's baseline and the font's ascender), fidgets, and leaves the moment a mouse
+    comes near. The footer's **Back to the top, by pigeon** flies one along, mail in its beak, while the page runs back
+    up, and it lands on the name when it gets there.
+  - The CV (`src/sections.js`, `src/stickers.js`, `src/runner.js`): a pixel sticker beside every entry (pops in with
+    the scroll, grey until pressed); the marquee can be grabbed and thrown, coasts to a stop and wraps forever (a third
+    copy of each row; touch keeps vertical scrolling); skills that something on the page was built with are links to
+    it, saying where under a mouse; "In progress" has a barber's-pole bar; the scroll's runner hops when tapped and his
+    blocks bump; every big heading's letters hop as a mouse brushes over them.
+  - The footer: its bars ping too and each contact link lights up as the ring passes; the small print says how far
+    the visitor scrolled to get there, in metres and in pigeons.
+  - With motion off none of the moving ones run, and `?still` keeps the birds away for the screenshot checks.
 
 ## How the scenes work
 
@@ -127,25 +147,47 @@ node tools/game-test.mjs                                                    # Bu
 node tools/eggs-test.mjs                                                    # the Easter eggs, found the way a visitor would, desktop and phone
 ```
 
-`shoot.mjs` and `at.mjs` take `--motion=off` to check the still version. They use the system Chrome. `shoot.mjs` loads the
+`shoot.mjs` and `at.mjs` take `--motion=off` to check the still version. They use the system Chrome (set `CHROME`
+to the path of another one). `shoot.mjs` loads the
 page with `?still`, so the ambient loops (which follow time, not scroll) cannot spoil its reverse-playback comparison.
 
 ## Easter eggs
 
+Nineteen things are hidden in the page. `src/hunt.js` keeps count: the note each one shows the first time carries the
+tally ("7 of 19 found"), the footer's small print keeps it, and its button opens a log, found ones by name and a hint
+for each of the rest. It only counts what the visitor's device can reach (a phone has ten, motion off leaves fifteen),
+remembers in `localStorage`, and throws a small party for the last one.
+
 <details>
 <summary>Spoilers: what's hidden in the page</summary>
 
-- **The console.** Open the dev tools: a hello, with a hint.
-- **Leave the tab.** Its title loses the connection ("📡 Connection lost… come back?") and is "✅ Back online" when you
-  come back.
-- **↑ ↑ ↓ ↓ ← → ← → B A.** Coins rain down the screen, and Bug Run's runner turns gold (and stays gold).
+- **The signal bars** (top left, or the footer's). Press them: a ping rings out and the name's letters squeeze as it
+  passes.
+- **The clock.** Press it for your own time, and how far that is from Beirut's.
+- **Click the letters of the name.** Each one hops; hop all thirteen and the whole name does a wave.
+- **Pull a letter of the name** with a mouse or a pen. Rubber.
+- **Wait at the top.** After nine quiet seconds a pigeon lands on the "l". Go near it.
+- **Write on NeatInk's page**, or on the tablet, with a mouse or a pen. The ink fades away like the scene's own.
+- **Write a little more, and stop.** A light runs along what you wrote and it is "converted" to type. (It can't read.
+  It says so.)
+- **Poke a pigeon** sitting on the mosque in the Pigeon scene. (Wide screens: on a phone they sit behind the phone.)
+- **Click the moon** over Pigeon's city: a shooting star, and the moon moves on a phase.
+- **Click the city's windows.** Lights go on and off; they are yours, so they stay on through the power cut. Five.
+- **Click Logbook's floor.** A day is logged under the mouse, and the tally in the corner counts it. Seven.
+- **Press the CV's stickers.** All seven.
+- **Finish a run of Bug Run.**
+- **Throw the marquee**, hard.
+- **Type "coo"** anywhere on the page. A flock crosses with the mail.
 - **Type "offline"** anywhere on the page. It blinks out like a dropped signal, then points out that everything still
   works.
-- **Click the letters of the name.** Each one hops; hop all thirteen and the whole name does a wave.
-- **Poke a pigeon** sitting on the mosque in the Pigeon scene. (Wide screens: on a phone they sit behind the phone.)
-- **Write on NeatInk's page**, or on the tablet, with a mouse or a pen. The ink fades away like the scene's own.
+- **↑ ↑ ↓ ↓ ← → ← → B A.** Coins rain down the screen, and Bug Run's runner turns gold (and stays gold).
+- **The console.** Open the dev tools: a hello, with a hint. `eggs()` prints the log.
+- **Leave the tab.** Its title loses the connection ("📡 Connection lost… come back?") and is "✅ Back online" when you
+  come back.
 
-All of it is in `src/eggs.js`; `tools/eggs-test.mjs` finds each one the way a visitor would.
+Most are in `src/eggs.js`; the rest live with what they play with (`hero.js`, `hero-play.js`, `birds.js`,
+`stickers.js`, `sections.js`, `scenes/logbook-streaks.js`, `game.js`). `tools/eggs-test.mjs` finds each one the way a
+visitor would, on a desktop and on a phone.
 </details>
 
 ## Deploy

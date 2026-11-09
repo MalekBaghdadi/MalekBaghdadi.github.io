@@ -15,7 +15,7 @@ const SOUK = { x: 146, w: 188 }; // the old market, where the fire is
 const FIRE = { x: 240, y: 212 }; // the fire's base, on the market's second floor
 
 const lit = [[], [], []]; // lit windows by district (filled by skyline())
-const windows = []; // every window's top-left corner
+export const windows = []; // every window's top-left corner (7 x 10, in the city's box); eggs.js lets a visitor switch them on
 
 function skyline() {
   const r = rng(7);
@@ -115,7 +115,8 @@ function skyline() {
 }
 
 // A pigeon, side on, facing right, its feet at (0, 0): wings up, level, down, and folded for sitting.
-const bird = `<svg class="pc-bird" width="24" height="21" viewBox="-12 -16 24 21" overflow="visible" aria-hidden="true">
+// (Exported: birds.js flies the same bird over the rest of the page.)
+export const bird = `<svg class="pc-bird" width="24" height="21" viewBox="-12 -16 24 21" overflow="visible" aria-hidden="true">
   <path d="M-5-5.2L-11.5-6.6-10.8-3.4Z" fill="#77736a"/><path class="w wu" d="M1-6C-1-12-4-15.2-7.4-15.6-4.4-11.2-3.2-8-2-5.4Z" fill="#7f7a70"/>
   <path class="w wm" d="M1.5-5.6C-3-6.8-8-6.8-11.6-5.2-7.6-4.1-3-3.9 0-4.2Z" fill="#7f7a70"/>
   <path class="w wd" d="M1-5C-1-1-3 3-6.4 4.6-4.6 1-3.6-2-2.6-4.6Z" fill="#7f7a70"/>

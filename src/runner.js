@@ -1,8 +1,10 @@
 // A pixel runner along the bottom of "Game development": it runs with the scroll (stop and it stops, scroll up and it
 // runs backwards), jumps at each block, bumps it from below and a coin pops out. Drawn in the site's own ink,
 // ultramarine and flare, with the marquee's square for a coin. Everything is a function of the scroll position.
-// (The sprites are exported: the Bug Run game behind the Play button, game/bugrun.js, has the same runner.)
+// (The sprites are exported: the Bug Run game behind the Play button, game/bugrun.js, has the same runner, and the
+// stickers beside the CV's entries, stickers.js, are drawn the same way.)
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { burst } from './burst.js';
 
 export const PAL = { k: '#0f1633', b: '#2b3bff', s: '#e9b48f', f: '#ff5a36', w: '#ffffff', g: '#434b6b' };
 // 12 x 16 sprites, facing right: two running frames and a jump
@@ -48,8 +50,10 @@ const FLAG = [
 ];
 PAL.c = '#c9cedb';
 
+PAL.y = '#ffd23f';
+
 const pixels = (rows, px) => rows.flatMap((row, y) => [...row].map((c, x) => (c === '.' ? '' : `<rect x="${x * px}" y="${y * px}" width="${px}" height="${px}" fill="${PAL[c]}"/>`))).join('');
-const sprite = (rows, px, cls = '') => `<svg class="${cls}" width="${rows[0].length * px}" height="${rows.length * px}" shape-rendering="crispEdges" aria-hidden="true">${pixels(rows, px)}</svg>`;
+export const sprite = (rows, px, cls = '') => `<svg class="${cls}" width="${rows[0].length * px}" height="${rows.length * px}" shape-rendering="crispEdges" aria-hidden="true">${pixels(rows, px)}</svg>`;
 
 export function initRunner(section) {
   if (!section) return;
@@ -73,7 +77,7 @@ export function initRunner(section) {
   const score = track.querySelector('.runner-score b'), dust = [...track.querySelectorAll('.runner-dust')];
   const W = 12 * px, JUMP = 14 * px, REACH = 26 * px; // sprite width, jump height, half the jump's run-up
   const POLE = 19 * px; // the flag's travel up its pole (26px tall, the cloth 4px, 2px off the ground)
-  let coins = -1;
+  let coins = -1, at = 0;
 
   let width = 0;
   const measure = () => {
@@ -85,6 +89,7 @@ export function initRunner(section) {
     });
   };
   function update(p) {
+    at = p;
     const x = -W + p * (width + 2 * W); // from off the left edge to off the right one
     const mid = x + W / 2;
     let y = 0, jumping = false, landed = -1, got = 0;
@@ -112,6 +117,22 @@ export function initRunner(section) {
     const up = Math.max(0, Math.min(1, (mid - (width - 70 * px)) / (40 * px))); // the flag rises as the runner reaches the pole
     cloth.style.transform = `translateY(${(-up * POLE).toFixed(1)}px)`;
   }
+  // He can be pressed, too: a tap and he hops on the spot; a tap on a block bumps it and knocks a few pixels loose.
+  // (The hops ride the `translate` property, so they never fight the transform the scroll sets.)
+  const again = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+  me.addEventListener('click', () => {
+    again(me, 'hop');
+    me.dataset.frame = 'j';
+    setTimeout(() => update(at), 420); // back to whichever frame the scroll has him in
+  });
+  for (const b of blocks) {
+    b.el.addEventListener('click', () => {
+      again(b.el, 'bump');
+      const r = b.el.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top, [PAL.f, PAL.y, PAL.b], 7, px + 1);
+    });
+  }
+
   ScrollTrigger.create({
     trigger: section, start: 'top 75%', end: 'bottom 25%',
     onRefresh: (self) => { measure(); update(self.progress); },

@@ -4,6 +4,8 @@
 // its four corners), not made with a CSS 3D transform: a 3D layer is recomposited every frame, a flat one is not. And
 // nothing here loops: on a slow phone even one pulsing square cost a sixth of the frames while scrolling.
 import { rng } from '../ambient.js';
+import { found } from '../hunt.js';
+import { burst } from '../burst.js';
 
 const ROWS = 7;
 const COLS = 53;
@@ -30,6 +32,7 @@ export function initStreaks(el, tl) {
   const count = el.querySelector('.lb-count'), countN = count.querySelector('b'), countS = count.querySelector('em i');
   let counted = -1;
 
+  const mine = new Map(); // days the visitor logged by hand: cell -> its square (see `play`)
   let w = 0, h = 0, dpr = 1, shown = -1;
   const state = { n: 0 };
   // (u, v) on the floor, u across 0..1 and v from far (0) to near (1), to canvas pixels
@@ -58,7 +61,7 @@ export function initStreaks(el, tl) {
     const n = Math.max(0, Math.min(N, Math.round(state.n)));
     if (n !== counted) {
       counted = n;
-      countN.textContent = logged[n];
+      countN.textContent = logged[n] + mine.size;
       countS.textContent = streak[n];
       count.classList.toggle('hot', streak[n] >= 7); // a week or more in a row: the streak lights up
     }
@@ -86,10 +89,63 @@ export function initStreaks(el, tl) {
     canvas.height = Math.round(h * dpr);
     shown = -1;
     render();
+    for (const [i, sq] of mine) lay(sq, i);
   }
   new ResizeObserver(layout).observe(el);
 
+  // a flat 10px square skewed onto cell i (a parallelogram is close enough at this size)
+  function lay(sq, i) {
+    const [a, b, , d] = corners(i);
+    sq.style.transform = `matrix(${(b[0] - a[0]) / 10}, ${(b[1] - a[1]) / 10}, ${(d[0] - a[0]) / 10}, ${(d[1] - a[1]) / 10}, ${a[0]}, ${a[1]})`;
+  }
+
+  /**
+   * The floor can be logged on by hand: under a mouse the day it is over lights up, and a click logs it (or takes it
+   * back). The tally in the corner counts them in. Seven makes a week. The pointer is turned back into a place on the
+   * floor by running the projection the other way.
+   */
+  function play(section) {
+    const stage = section.querySelector('.stage');
+    const hover = ground.appendChild(Object.assign(document.createElement('i'), { className: 'lb-hover', hidden: true }));
+    const cellAt = (e) => {
+      if (!w || e.target.closest?.('a, button, .lb-phone, .copy > *')) return -1;
+      const r = canvas.getBoundingClientRect();
+      if (!r.width) return -1;
+      const x = ((e.clientX - r.left) * w) / r.width, y = ((e.clientY - r.top) * h) / r.height;
+      if (y < 0 || y > h) return -1;
+      const z = (1.6 * h) / (y + 0.6 * h), v = (FAR - z) / (FAR - 1), u = 0.5 + ((x - w / 2) * z) / (w * SPREAD);
+      return u < 0 || u >= 1 || v < 0 || v >= 1 ? -1 : Math.floor(u * COLS) * ROWS + Math.floor(v * ROWS);
+    };
+    let over = -1;
+    const point = (i) => {
+      if (i === over) return;
+      over = i;
+      hover.hidden = i < 0;
+      stage.classList.toggle('lb-pick', i >= 0);
+      if (i >= 0) lay(hover, i);
+    };
+    section.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') point(cellAt(e)); }, { passive: true });
+    section.addEventListener('pointerleave', () => point(-1));
+    section.addEventListener('click', (e) => {
+      const i = cellAt(e);
+      if (i < 0) return;
+      if (mine.has(i)) { mine.get(i).remove(); mine.delete(i); }
+      else {
+        const sq = ground.appendChild(Object.assign(document.createElement('i'), { className: 'lb-mine' }));
+        lay(sq, i);
+        mine.set(i, sq);
+        burst(e.clientX, e.clientY, ['#9db8f5', '#e7eaf0', '#5d7fd0'], 6, 4);
+        if (mine.size === 7) found('streak', '🔥 <b>Seven days logged.</b> That’s a week. In Logbook, that is how a streak starts.');
+      }
+      counted = -1;
+      render();
+      count.classList.remove('bump');
+      void count.offsetWidth;
+      count.classList.add('bump');
+    });
+  }
+
   // a year over the walkthrough, the first days logged as Today fills its bars
   tl.fromTo(state, { n: 0 }, { n: N, duration: 0.93, onUpdate: render }, 0.03);
-  return { relayout: layout, redraw: render };
+  return { relayout: layout, redraw: render, play };
 }

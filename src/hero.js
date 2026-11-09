@@ -4,6 +4,8 @@ import { splitWords } from './split.js';
 import { initWaves } from './hero-waves.js';
 import { liveWhileVisible, rng } from './ambient.js';
 import { vh, anticipatePin } from './viewport.js';
+import { found } from './hunt.js';
+import { initHeroPlay } from './hero-play.js';
 
 const WIDE = 150;   // Anybody's widest width axis: the name rests here and fills the line
 const NARROW = 50;  // where the load intro starts
@@ -37,18 +39,21 @@ export function initHero({ reduced }) {
     }
   }
   const n = chars.length;
+  let waves = null; // the signal's rings (hero-waves.js), once they exist
 
   // Each letter's width comes from three inputs, combined in one place so they never fight:
   // the load intro (0..1), the scroll squeeze (shared, 0..1, staggered left to right) and the pointer pinch (0..1).
+  // A fourth rides with the pinch: a ping sent from the signal bars squeezes each letter as its ring goes by.
   const intro = chars.map(() => ({ v: reduced ? 1 : 0 }));
   const pinch = chars.map(() => 0);
+  const wave = chars.map(() => 0);
   const state = { squeeze: 0 };
   function render() {
     chars.forEach((c, i) => {
       const s = Math.max(0, Math.min(1, state.squeeze * 1.6 - (i / (n - 1)) * 0.6));
       const base = WIDE - (WIDE - SQUEEZE) * s;
       let w = NARROW + (base - NARROW) * intro[i].v;
-      if (w > PINCH) w -= (w - PINCH) * pinch[i];
+      if (w > PINCH) w -= (w - PINCH) * Math.max(pinch[i], wave[i]);
       c.style.fontStretch = `${w.toFixed(1)}%`;
     });
   }
@@ -67,17 +72,39 @@ export function initHero({ reduced }) {
   }
 
   // Beirut's time, the one live detail in the status line; its colon blinks every second while the hero is on screen.
+  // Pressed, it shows the visitor's own time for a few seconds, and how far that is from Beirut's.
+  const clockEl = q('.clock');
   const clock = q('.clock time');
   clock.innerHTML = '<span></span><b class="colon amb">:</b><span></span>';
+  clockEl.firstChild.replaceWith(Object.assign(document.createElement('span'), { className: 'clock-who', textContent: 'Beirut' }), ' ');
+  const who = clockEl.firstChild, away = clockEl.appendChild(Object.assign(document.createElement('span'), { className: 'clock-away' }));
   const [hh, , mm] = clock.children;
-  const fmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Beirut' });
+  const zone = (timeZone) => new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone });
+  const fmt = { beirut: zone('Asia/Beirut'), you: zone(undefined) };
+  const read = (f, d) => Object.fromEntries(f.formatToParts(d).map((p) => [p.type, p.value]));
+  const minutes = (p) => Date.UTC(+p.year, p.month - 1, +p.day, +p.hour, +p.minute) / 60000;
+  let mine = false, mineTimer = 0;
   const tick = () => {
-    const parts = fmt.formatToParts(new Date());
-    hh.textContent = parts.find((p) => p.type === 'hour').value;
-    mm.textContent = parts.find((p) => p.type === 'minute').value;
+    const d = new Date(), parts = read(mine ? fmt.you : fmt.beirut, d);
+    hh.textContent = parts.hour;
+    mm.textContent = parts.minute;
+    who.textContent = mine ? 'You' : 'Beirut';
+    if (!mine) { away.textContent = ''; return; }
+    const gap = Math.round(minutes(parts) - minutes(read(fmt.beirut, d))), h = Math.floor(Math.abs(gap) / 60), m = Math.abs(gap) % 60;
+    away.textContent = gap ? ` ${[h && `${h} h`, m && `${m} min`].filter(Boolean).join(' ')} ${gap < 0 ? 'behind' : 'ahead of'} Beirut` : ' same time as Beirut';
   };
   tick();
   setInterval(tick, 20_000);
+  clockEl.addEventListener('click', () => {
+    mine = !mine;
+    tick();
+    waves?.resize(); // the bars moved along the line
+    clearTimeout(mineTimer);
+    if (mine) {
+      found('clock', '🕰️ <b>Your time.</b> Beirut’s is the one I answer email in.');
+      mineTimer = setTimeout(() => { mine = false; tick(); waves?.resize(); }, 7000);
+    }
+  });
 
   const bars = qa('.bars rect');
   const labelA = q('.net-a'), n0 = q('.n0'), n1 = q('.n1'), n2 = q('.n2');
@@ -166,8 +193,29 @@ export function initHero({ reduced }) {
   tl.eventCallback('onUpdate', render);
   ScrollTrigger.addEventListener('refresh', render); // refresh renders the timeline to its end and back with events muted
   // behind it all, the signal: rings pulse out of the bars until the connection drops (hero-waves.js)
-  initWaves(stage, q('.bars'), tl, LEN, reduced);
+  waves = initWaves(stage, q('.bars'), tl, LEN, reduced);
   liveWhileVisible(hero, LEN);
+
+  // Press the signal bars: a ping goes out of them, and the name feels it pass, each letter squeezed as the ring
+  // crosses it. With the connection gone the ring breaks up before it gets anywhere (and the bars shake their head).
+  const net = q('.net');
+  net.addEventListener('click', () => {
+    const down = state.squeeze > 0.3;
+    found('ping', down ? '📡 <b>No connection.</b> That ping didn’t get far. The apps don’t mind.' : '📶 <b>Signal sent.</b> Not that anything on this page needs one.');
+    if (reduced) return;
+    net.classList.remove('pinged', 'failed');
+    void net.offsetWidth;
+    net.classList.add(down ? 'failed' : 'pinged');
+    const band = size * 0.55;
+    waves?.ping((r, x, y) => {
+      const o = name.getBoundingClientRect();
+      chars.forEach((c, i) => { wave[i] = Math.exp(-(((Math.hypot(o.left + rest[i].x - x, o.top + rest[i].y - y) - r) / band) ** 2)); });
+      render();
+    }, () => { wave.fill(0); render(); });
+  });
+
+  // the name's letters can be pulled like rubber, and the three devices lean after the mouse (hero-play.js)
+  initHeroPlay({ hero, name, chars, trio: [tab, left, right], squeezed: () => state.squeeze > 0.02, reduced });
 
   if (reduced) {
     tl.time(0).pause();

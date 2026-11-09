@@ -3,6 +3,17 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { splitChars, splitWords } from './split.js';
 import { initRunner } from './runner.js';
 import { initFooterWaves } from './hero-waves.js';
+import { initStickers } from './stickers.js';
+import { found } from './hunt.js';
+
+// Where on this page each skill can be seen at work (only what the page itself shows: the three apps, the jams, itself).
+const USED_IN = {
+  Dart: ['#neatink', 'in NeatInk'], Flutter: ['#neatink', 'in NeatInk'],
+  Kotlin: ['#pigeon', 'in Pigeon'],
+  TypeScript: ['#logbook', 'in Logbook'], React: ['#logbook', 'in Logbook'], Firebase: ['#logbook', 'in Logbook'],
+  'Unity 2D/3D': ['#games', 'in the game jams'],
+  JavaScript: ['#top', 'in this page'], HTML: ['#top', 'in this page'], CSS: ['#top', 'in this page'],
+};
 
 // The CV sections after the demos move with the scroll too, in the demos' language: headings that open to full
 // width, rules that draw themselves with a blue square riding the tip, entries that rise into place, a work timeline
@@ -38,7 +49,13 @@ export function initSections({ reduced }) {
     dd.textContent = '';
     items.forEach((t, i) => {
       if (i) dd.append(' ');
-      dd.append(Object.assign(document.createElement('span'), { className: 'tok', textContent: t + (i < items.length - 1 ? ',' : '') }));
+      const tok = Object.assign(document.createElement('span'), { className: 'tok' }), used = USED_IN[t];
+      // a skill that one of the things on this page was built with is a link to it, and says so under a mouse
+      if (used) tok.append(Object.assign(document.createElement('a'), { href: used[0], textContent: t }));
+      else tok.append(t);
+      if (used) tok.firstChild.dataset.in = used[1];
+      if (i < items.length - 1) tok.append(',');
+      dd.append(tok);
     });
     gsap.fromTo(dd.querySelectorAll('.tok'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: st(dd, 'top 94%', 'top 62%') });
   }
@@ -72,7 +89,12 @@ export function initSections({ reduced }) {
   }
 
   document.querySelectorAll('.mq-row').forEach((row, i) => {
-    gsap.fromTo(row, { xPercent: i % 2 ? -28 : 0 }, { xPercent: i % 2 ? 0 : -28, ease: 'none', scrollTrigger: st(row.parentElement, 'top bottom', 'bottom top') });
+    // Each row holds its list twice; a third copy lets it be thrown either way without ever showing an end. The scroll
+    // moves it as far as before (28% of two copies is 18.67% of three).
+    const words = [...row.children];
+    row.append(...words.slice(0, words.length / 2).map((w) => w.cloneNode(true)));
+    const slide = (28 * 2) / 3;
+    gsap.fromTo(row, { xPercent: i % 2 ? -slide : 0 }, { xPercent: i % 2 ? 0 : -slide, ease: 'none', scrollTrigger: st(row.parentElement, 'top bottom', 'bottom top') });
   });
   const marquee = document.querySelector('.marquee');
   if (marquee) {
@@ -87,6 +109,16 @@ export function initSections({ reduced }) {
     const set = (v) => lean.forEach((to, i) => to((i % 2 ? -1 : 1) * gsap.utils.clamp(-9, 9, v / 260)));
     ScrollTrigger.create({ trigger: marquee, start: 'top bottom', end: 'bottom top', onUpdate: (self) => set(self.getVelocity()), onToggle: () => set(0) });
     ScrollTrigger.addEventListener('scrollEnd', () => set(0));
+    throwable(marquee, rows, lean);
+  }
+
+  initStickers(st);
+  // "In progress" gets a bar that is: a barber's pole that turns while the section is on screen (style.css)
+  for (const when of document.querySelectorAll('.entry .when')) {
+    if (when.textContent.trim() !== 'In progress') continue;
+    when.append(Object.assign(document.createElement('i'), { className: 'wip amb' }));
+    const sec = when.closest('section');
+    new IntersectionObserver(([e]) => sec.classList.toggle('is-live', e.isIntersecting)).observe(sec);
   }
 
   initRunner(document.getElementById('games'));
@@ -106,8 +138,26 @@ export function initSections({ reduced }) {
         .fromTo(rc.querySelector('.rc-off'), { opacity: 1 }, { opacity: 0, duration: 0.08 }, 0.86)
         .fromTo(rc.querySelector('.rc-on'), { opacity: 0 }, { opacity: 1, duration: 0.08 }, 0.86);
       // ...and the hero's rings come back with it: the page ends as it began, the signal pulsing out of the bars
-      initFooterWaves(contact, rc.querySelector('svg'), back, 0.84);
+      const waves = initFooterWaves(contact, rc.querySelector('svg'), back, 0.84);
+      // ...and can be pressed, like the hero's: a ping rings out across the footer and each way to reach Malek lights
+      // up as it passes
+      rc.addEventListener('click', () => {
+        found('ping', '📶 <b>Signal sent.</b> For an actual reply, the email below works better.');
+        const links = [...contact.querySelectorAll('dd a')].map((a) => { const r = a.getBoundingClientRect(); return { a, x: r.left + Math.min(r.width, 120) / 2, y: r.top + r.height / 2 }; });
+        waves?.ping((r, x, y) => {
+          for (const l of links) {
+            if (l.hit || Math.hypot(l.x - x, l.y - y) > r) continue;
+            l.hit = true;
+            l.a.classList.remove('pinged');
+            void l.a.offsetWidth;
+            l.a.classList.add('pinged');
+          }
+        });
+      });
     }
+    // the small print (hunt.js, birds.js) comes up last
+    const hunt = contact.querySelector('.hunt');
+    if (hunt) gsap.fromTo(hunt, { opacity: 0, y: 24 }, { opacity: 1, y: 0, ease: 'none', scrollTrigger: st(contact, 'top 40%', 'bottom bottom') });
     footerLight(contact);
   }
 }
@@ -128,4 +178,60 @@ function footerLight(contact) {
     spot.classList.add('on');
   });
   contact.addEventListener('pointerleave', () => { spot.classList.remove('on'); fresh = true; });
+}
+
+// The marquee can be taken hold of and thrown: a row follows the hand (or the finger; up and down is still the page's),
+// keeps going when let go, and slows to a stop, leaning into its speed like it does with the scroll. It rides the
+// `translate` property, wrapped by one copy's width, under whatever the scroll has set on the transform.
+function throwable(marquee, rows, lean) {
+  const st = rows.map((row, i) => ({ row, i, off: 0, v: 0, period: 1 }));
+  const measure = () => st.forEach((s) => { s.period = (s.row.scrollWidth + parseFloat(getComputedStyle(s.row).columnGap || 0)) / 3 || 1; });
+  const draw = (s) => { s.row.style.translate = `${(-((((-s.off) % s.period) + s.period) % s.period)).toFixed(1)}px 0`; };
+  ScrollTrigger.addEventListener('refresh', () => { measure(); st.forEach(draw); });
+  measure();
+
+  let drag = null, coasting = false;
+  function coast(time, delta) {
+    const dt = Math.min(0.05, delta / 1000);
+    let moving = false;
+    for (const s of st) {
+      if (s === drag?.s || Math.abs(s.v) < 6) { if (s !== drag?.s && s.v) { s.v = 0; lean[s.i](0); } continue; }
+      s.off += s.v * dt;
+      s.v *= Math.exp(-dt * 1.9);
+      lean[s.i](gsap.utils.clamp(-11, 11, -s.v / 150));
+      draw(s);
+      moving = true;
+    }
+    if (!moving && !drag) { gsap.ticker.remove(coast); coasting = false; }
+  }
+  marquee.addEventListener('pointerdown', (e) => {
+    const s = st.find((k) => k.row.contains(e.target));
+    if (!s || e.button > 0) return;
+    drag = { s, id: e.pointerId, x: e.clientX, t: performance.now(), moved: 0 };
+    s.v = 0;
+  });
+  marquee.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, now = performance.now(), dt = Math.max(1, now - drag.t);
+    drag.x = e.clientX;
+    drag.t = now;
+    if (!drag.moved && Math.abs(dx) > 0) { marquee.setPointerCapture?.(e.pointerId); marquee.classList.add('held'); }
+    drag.moved += Math.abs(dx);
+    drag.s.off += dx;
+    drag.s.v += ((dx / dt) * 1000 - drag.s.v) * 0.35; // the hand's speed, smoothed
+    lean[drag.s.i](gsap.utils.clamp(-11, 11, -drag.s.v / 150));
+    draw(drag.s);
+  });
+  const letGo = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const { s } = drag;
+    if (performance.now() - drag.t > 120) s.v = 0; // it was held still before being let go: put down, not thrown
+    drag = null;
+    marquee.classList.remove('held');
+    if (Math.abs(s.v) < 6) lean[s.i](0);
+    if (Math.abs(s.v) > 1500) found('fling', '<b>Wheee.</b> Twenty-four skills, no brakes.', 0, true);
+    if (!coasting) { coasting = true; gsap.ticker.add(coast); }
+  };
+  marquee.addEventListener('pointerup', letGo);
+  marquee.addEventListener('pointercancel', letGo);
 }
