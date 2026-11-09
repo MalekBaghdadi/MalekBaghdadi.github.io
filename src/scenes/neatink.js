@@ -428,12 +428,18 @@ export function initNeatInk(section, { reduced }) {
 /**
  * The backdrop: rules across the whole scene that draw themselves while the chapter slides in, a margin line, and three
  * words in the app's ink colour, each written stroke by stroke during its part of the walkthrough: "offline" while the
- * pen writes, "no accounts" while the ink turns into text, "no ads" over the PDF.
+ * pen writes, "no accounts" while the ink turns into text, "no ads" over the PDF. As each is finished the same hand
+ * marks it, the way notes get marked: "offline" underlined twice, "no accounts" ringed, "no ads" starred.
  */
+const MARKS = { // in each word's own coordinates (its baseline is y = 0)
+  w1: 'M1 13C24 9 58 15 92 7M88 12C62 16 30 12 6 18',
+  w2: 'M12 -33C70 -46 188 -43 195 -15C200 12 62 17 4 5C-20 -5 -8 -30 34 -37',
+  w3: 'M-26 -37L-19 -13L-39 -28L-13 -28L-33 -13Z',
+};
 function backdrop(section, tl, reduced) {
   const word = (w, cls) => {
     const [x, y, bw, bh] = w.box;
-    return `<svg class="ni-word ${cls}" viewBox="${x} ${y} ${bw} ${bh}">${w.strokes.map((s) => `<path d="${s.c}" stroke-dasharray="${s.len + 1}" stroke-dashoffset="${s.len + 1}"/>`).join('')}</svg>`;
+    return `<svg class="ni-word ${cls}" viewBox="${x} ${y} ${bw} ${bh}">${w.strokes.map((s) => `<path d="${s.c}" stroke-dasharray="${s.len + 1}" stroke-dashoffset="${s.len + 1}"/>`).join('')}<path class="ni-mark" d="${MARKS[cls]}" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>`;
   };
   const holder = document.createElement('div');
   holder.innerHTML = `<div class="ni-back backdrop" aria-hidden="true">
@@ -457,7 +463,9 @@ function backdrop(section, tl, reduced) {
   }
 
   const writers = [[ink.bg.offline, '.w1', 0.04, 0.28], [ink.bg.accounts, '.w2', 0.52, 0.7], [ink.bg.ads, '.w3', 0.78, 0.97]].map(([w, sel, a, b]) => {
-    const paths = [...el.querySelectorAll(`${sel} path`)];
+    const paths = [...el.querySelectorAll(`${sel} path:not(.ni-mark)`)];
+    // the mark goes on in one quick movement, the moment the word is done
+    tl.fromTo(el.querySelector(`${sel} .ni-mark`), { strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.028, ease: 'power2.inOut', immediateRender: true }, b + 0.006);
     const shown = paths.map(() => -1);
     const o = { p: 0 };
     const draw = (p) => w.strokes.forEach((s, i) => {
@@ -467,5 +475,5 @@ function backdrop(section, tl, reduced) {
     tl.fromTo(o, { p: 0 }, { p: 1, duration: b - a, onUpdate: () => draw(o.p) }, a);
     return { redraw: () => draw(o.p), finish: () => draw(1) };
   });
-  return { redraw: () => writers.forEach((w) => w.redraw()), finish: () => writers.forEach((w) => w.finish()) };
+  return { redraw: () => writers.forEach((w) => w.redraw()), finish: () => { writers.forEach((w) => w.finish()); gsap.set(el.querySelectorAll('.ni-mark'), { strokeDashoffset: 0 }); } };
 }

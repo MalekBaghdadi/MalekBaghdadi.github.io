@@ -4,7 +4,6 @@
 // its four corners), not made with a CSS 3D transform: a 3D layer is recomposited every frame, a flat one is not. And
 // nothing here loops: on a slow phone even one pulsing square cost a sixth of the frames while scrolling.
 import { rng } from '../ambient.js';
-import { found } from '../hunt.js';
 import { burst } from '../burst.js';
 
 const ROWS = 7;
@@ -15,8 +14,12 @@ const COLORS = ['#131a29', 'rgba(157,184,245,0.12)', 'rgba(157,184,245,0.24)', '
 const FAR = 2.6;
 const SPREAD = 1.7; // how much wider than the canvas the near edge is
 
+// the year the floor is, named along its far edge; each month's first column (a column is a week)
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_COL = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334].map((d) => Math.floor(d / 7));
+
 export function buildStreaks() {
-  return `<div class="lb-floor backdrop" aria-hidden="true"><div class="lb-ground"><canvas></canvas><i class="lb-today"></i></div>
+  return `<div class="lb-floor backdrop" aria-hidden="true"><div class="lb-ground"><canvas></canvas><i class="lb-today"></i><ol class="lb-months">${MONTHS.map((m) => `<li>${m}</li>`).join('')}</ol></div>
     <p class="lb-count"><b>0</b><span>days logged</span><em><i>0</i> in a row</em></p></div>`;
 }
 
@@ -31,6 +34,8 @@ export function initStreaks(el, tl) {
   level.forEach((l, i) => { logged.push(logged[i] + (l > 0)); streak.push(l > 0 ? streak[i] + 1 : 0); });
   const count = el.querySelector('.lb-count'), countN = count.querySelector('b'), countS = count.querySelector('em i');
   let counted = -1;
+  const months = [...el.querySelectorAll('.lb-months li')];
+  let month = -2;
 
   const mine = new Map(); // days the visitor logged by hand: cell -> its square (see `play`)
   let w = 0, h = 0, dpr = 1, shown = -1;
@@ -64,6 +69,9 @@ export function initStreaks(el, tl) {
       countN.textContent = logged[n] + mine.size;
       countS.textContent = streak[n];
       count.classList.toggle('hot', streak[n] >= 7); // a week or more in a row: the streak lights up
+      // the month being filled is lit along the far edge; the ones behind it stay a little brighter than the ones to come
+      const col = Math.floor(Math.max(0, n - 1) / ROWS), m = n ? MONTH_COL.findLastIndex((c) => c <= col) : -1;
+      if (m !== month) { month = m; months.forEach((li, i) => { li.className = i === m ? 'on' : i < m ? 'done' : ''; }); }
     }
     if (n === shown || !w) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -90,6 +98,7 @@ export function initStreaks(el, tl) {
     shown = -1;
     render();
     for (const [i, sq] of mine) lay(sq, i);
+    months.forEach((li, i) => { const [x, y] = project((MONTH_COL[i] + 0.5) / COLS, 0); li.style.transform = `translate(${x.toFixed(1)}px, ${(y - 22).toFixed(1)}px)`; });
   }
   new ResizeObserver(layout).observe(el);
 
@@ -135,7 +144,6 @@ export function initStreaks(el, tl) {
         lay(sq, i);
         mine.set(i, sq);
         burst(e.clientX, e.clientY, ['#9db8f5', '#e7eaf0', '#5d7fd0'], 6, 4);
-        if (mine.size === 7) found('streak', '🔥 <b>Seven days logged.</b> That’s a week. In Logbook, that is how a streak starts.');
       }
       counted = -1;
       render();

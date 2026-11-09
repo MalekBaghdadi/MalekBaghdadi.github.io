@@ -4,7 +4,6 @@ import { splitChars, splitWords } from './split.js';
 import { initRunner } from './runner.js';
 import { initFooterWaves } from './hero-waves.js';
 import { initStickers } from './stickers.js';
-import { found } from './hunt.js';
 
 // Where on this page each skill can be seen at work (only what the page itself shows: the three apps, the jams, itself).
 const USED_IN = {
@@ -75,17 +74,69 @@ export function initSections({ reduced }) {
       .fromTo(tip, { opacity: 1 }, { opacity: 0, duration: 0.12 }, 0.88);
   }
 
-  const list = document.querySelector('#experience .entries');
-  if (list) {
+  // Every list of more than one entry is a timeline: a rail beside it that fills as you read down, a dot riding the
+  // tip, and a stop at each entry that lights as the dot reaches it (like the chapter list beside Logbook's phone).
+  for (const list of document.querySelectorAll('.after .entries')) {
+    const entries = [...list.querySelectorAll('.entry')];
+    if (entries.length < 2) continue;
     const rail = document.createElement('i');
     rail.className = 'rail';
     rail.innerHTML = '<b></b><b></b>';
     list.prepend(rail);
     const [fill, dot] = rail.children;
-    gsap.fromTo(fill, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: st(list, 'top 75%', 'bottom 60%') });
+    const stops = entries.map((entry) => ({ entry, el: rail.appendChild(document.createElement('u')), at: 0 }));
+    const place = () => stops.forEach((k) => { k.at = k.entry.offsetTop - rail.offsetTop + 11; k.el.style.top = `${k.at}px`; });
+    const light = (self) => { const y = self.progress * rail.clientHeight; stops.forEach((k) => k.el.classList.toggle('on', y >= k.at - 1)); };
+    gsap.fromTo(fill, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { ...st(list, 'top 75%', 'bottom 60%'), onUpdate: light, onRefresh: (self) => { place(); light(self); } } });
     gsap.fromTo(dot, { y: 0 }, { y: () => rail.clientHeight, ease: 'none', scrollTrigger: { ...st(list, 'top 75%', 'bottom 60%'), invalidateOnRefresh: true } });
     // the dot sends out a ping as it rides the rail (style.css), only while the timeline is on screen
     new IntersectionObserver(([e]) => list.classList.toggle('is-live', e.isIntersecting)).observe(list);
+  }
+
+  // Behind each entry, its year, written large and faint in the display face (as NeatInk's promises and Logbook's
+  // tally are behind their demos): it opens to full width as the entry arrives, and drifts up slower than the text in
+  // front of it, so the page has depth. Something still going on says "Now".
+  for (const entry of document.querySelectorAll('.after .entry')) {
+    const when = entry.querySelector('.when'), times = when.querySelectorAll('time');
+    const year = /present|progress/i.test(when.textContent) || !times.length ? 'Now' : times[times.length - 1].dateTime.slice(0, 4);
+    const ghost = Object.assign(document.createElement('i'), { className: 'ghost', textContent: year });
+    ghost.setAttribute('aria-hidden', 'true');
+    entry.prepend(ghost);
+    const whole = { trigger: entry, start: 'top bottom', end: 'bottom top', scrub };
+    gsap.fromTo(splitChars(ghost), { fontStretch: '50%' }, { fontStretch: '125%', ease: 'none', stagger: 0.08, scrollTrigger: st(entry, 'top 96%', 'top 40%') });
+    gsap.fromTo(ghost, { yPercent: 34 }, { yPercent: -34, ease: 'none', scrollTrigger: whole });
+  }
+
+  // Education, counted the way Logbook counts days: a square for every semester of the degree, and for every year of
+  // school, filling in one by one.
+  const school = document.querySelectorAll('#education .entry > div');
+  for (const [body, n, unit] of [[school[0], 6, 'semesters'], [school[1], 15, 'years']]) {
+    if (!body) continue;
+    const row = document.createElement('p');
+    row.className = 'terms';
+    row.setAttribute('aria-hidden', 'true');
+    row.innerHTML = `${'<i></i>'.repeat(n)}<span><b>0</b> ${unit}</span>`;
+    body.append(row);
+    const squares = [...row.querySelectorAll('i')], num = row.querySelector('b'), o = { n: 0 };
+    let shown = -1;
+    const draw = () => {
+      const k = Math.round(o.n);
+      if (k === shown) return;
+      shown = k;
+      squares.forEach((sq, i) => sq.classList.toggle('on', i < k));
+      num.textContent = k;
+    };
+    gsap.fromTo(o, { n: 0 }, { n, ease: 'none', onUpdate: draw, scrollTrigger: { ...st(row, 'top 92%', 'top 58%'), onRefresh: draw } });
+  }
+
+  // Skills: each group's count runs up as its items arrive
+  for (const dt of document.querySelectorAll('.skills dt')) {
+    const toks = dt.nextElementSibling.querySelectorAll('.tok');
+    if (toks.length < 2) continue;
+    const num = dt.appendChild(Object.assign(document.createElement('sup'), { textContent: '0' })), o = { n: 0 };
+    num.setAttribute('aria-hidden', 'true');
+    const draw = () => { num.textContent = Math.round(o.n); };
+    gsap.fromTo(o, { n: 0 }, { n: toks.length, ease: 'none', onUpdate: draw, scrollTrigger: { ...st(dt.nextElementSibling, 'top 94%', 'top 62%'), onRefresh: draw } });
   }
 
   document.querySelectorAll('.mq-row').forEach((row, i) => {
@@ -142,7 +193,6 @@ export function initSections({ reduced }) {
       // ...and can be pressed, like the hero's: a ping rings out across the footer and each way to reach Malek lights
       // up as it passes
       rc.addEventListener('click', () => {
-        found('ping', '📶 <b>Signal sent.</b> For an actual reply, the email below works better.');
         const links = [...contact.querySelectorAll('dd a')].map((a) => { const r = a.getBoundingClientRect(); return { a, x: r.left + Math.min(r.width, 120) / 2, y: r.top + r.height / 2 }; });
         waves?.ping((r, x, y) => {
           for (const l of links) {
@@ -155,9 +205,9 @@ export function initSections({ reduced }) {
         });
       });
     }
-    // the small print (hunt.js, birds.js) comes up last
-    const hunt = contact.querySelector('.hunt');
-    if (hunt) gsap.fromTo(hunt, { opacity: 0, y: 24 }, { opacity: 1, y: 0, ease: 'none', scrollTrigger: st(contact, 'top 40%', 'bottom bottom') });
+    // the way back to the top (birds.js) comes up last
+    const up = contact.querySelector('.to-top');
+    if (up) gsap.fromTo(up, { opacity: 0, y: 24 }, { opacity: 1, y: 0, ease: 'none', scrollTrigger: st(contact, 'top 40%', 'bottom bottom') });
     footerLight(contact);
   }
 }
@@ -229,7 +279,6 @@ function throwable(marquee, rows, lean) {
     drag = null;
     marquee.classList.remove('held');
     if (Math.abs(s.v) < 6) lean[s.i](0);
-    if (Math.abs(s.v) > 1500) found('fling', '<b>Wheee.</b> Twenty-four skills, no brakes.', 0, true);
     if (!coasting) { coasting = true; gsap.ticker.add(coast); }
   };
   marquee.addEventListener('pointerup', letGo);

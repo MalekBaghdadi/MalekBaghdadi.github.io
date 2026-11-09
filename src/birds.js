@@ -4,12 +4,11 @@
 //                 about, and is gone the moment a mouse comes near (or a finger taps it). It comes back.
 //   the carrier   the footer's "Back to the top, by pigeon": it takes off from the button, flies along while the page
 //                 runs back up to the start, and lands on the name when it gets there.
-//   a flock       crossing the whole screen, one of them carrying the mail (eggs.js: typing "coo", and the finale).
+//   a flock       crossing the whole screen, one of them carrying the mail (eggs.js: typing "coo").
 //
 // These follow time, not scroll, so there are none with motion off or with ?still. One loop drives whatever is in the
 // air and stops when nothing is; a perched bird costs a timer.
 import { bird } from './scenes/pigeon-city.js';
-import { found } from './hunt.js';
 import { still } from './ambient.js';
 
 const FLAP = ['u', 'm', 'd', 'm'];
@@ -71,13 +70,13 @@ export function flyAcross(n = 9) {
 }
 
 /**
- * The visitor on the name, and the carrier back to the top. Adds the carrier's button to the footer's small print
- * (`box`, from hunt.js); with motion off it is a plain link to the top.
+ * The visitor on the name, and the carrier back to the top. Adds the carrier's button at the end of the footer; with
+ * motion off it is a plain link to the top.
  */
-export function initVisitor({ reduced, lenis, box }) {
-  const name = document.querySelector('.name');
+export function initVisitor({ reduced, lenis }) {
+  const name = document.querySelector('.name'), box = document.querySelector('.contact');
   if (reduced || still || !name) {
-    box?.insertAdjacentHTML('beforeend', '<a class="hunt-up" href="#top">Back to the top</a>');
+    box?.insertAdjacentHTML('beforeend', '<p class="to-top"><a href="#top">Back to the top</a></p>');
     return;
   }
   let b = null, state = 'away', timer = 0, fidget = 0, perch = { x: 0, y: 0 }, facing = -1;
@@ -142,7 +141,6 @@ export function initVisitor({ reduced, lenis, box }) {
       put(gone, x0 + 12 + dir * innerWidth * 0.6 * s ** 1.4, y0 + 16 - (y0 + 120) * ease(s) + 8 * Math.sin(s * 22), dir, FLAP[Math.floor(s * 22) % 4]);
       return true;
     });
-    if (scared) found('visitor', '🕊️ <b>Gone.</b> It’ll be back. They always come back.');
     wait(26000);
   }
 
@@ -155,8 +153,10 @@ export function initVisitor({ reduced, lenis, box }) {
   wait(9000);
 
   // ---- the carrier ----
-  const up = Object.assign(document.createElement('button'), { className: 'hunt-up', type: 'button', textContent: 'Back to the top, by pigeon' });
-  box?.append(up);
+  const up = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Back to the top, by pigeon' });
+  const line = Object.assign(document.createElement('p'), { className: 'to-top' });
+  line.append(up);
+  box?.append(line);
   up.addEventListener('click', () => {
     if (state === 'carry') return;
     if (scrollY < 8) return;

@@ -4,7 +4,6 @@ import { splitWords } from './split.js';
 import { initWaves } from './hero-waves.js';
 import { liveWhileVisible, rng } from './ambient.js';
 import { vh, anticipatePin } from './viewport.js';
-import { found } from './hunt.js';
 import { initHeroPlay } from './hero-play.js';
 
 const WIDE = 150;   // Anybody's widest width axis: the name rests here and fills the line
@@ -100,10 +99,7 @@ export function initHero({ reduced }) {
     tick();
     waves?.resize(); // the bars moved along the line
     clearTimeout(mineTimer);
-    if (mine) {
-      found('clock', '🕰️ <b>Your time.</b> Beirut’s is the one I answer email in.');
-      mineTimer = setTimeout(() => { mine = false; tick(); waves?.resize(); }, 7000);
-    }
+    if (mine) mineTimer = setTimeout(() => { mine = false; tick(); waves?.resize(); }, 7000);
   });
 
   const bars = qa('.bars rect');
@@ -201,7 +197,6 @@ export function initHero({ reduced }) {
   const net = q('.net');
   net.addEventListener('click', () => {
     const down = state.squeeze > 0.3;
-    found('ping', down ? '📡 <b>No connection.</b> That ping didn’t get far. The apps don’t mind.' : '📶 <b>Signal sent.</b> Not that anything on this page needs one.');
     if (reduced) return;
     net.classList.remove('pinged', 'failed');
     void net.offsetWidth;

@@ -1,5 +1,5 @@
-// Two small flourishes shared by the things a visitor can press: a burst of pixels, and a word that floats up and fades.
-// Each is a handful of fixed-position elements moved by the Web Animations API and removed when done; nothing is kept.
+// A small flourish shared by the things a visitor can press: a burst of pixels. A handful of fixed-position elements
+// moved by the Web Animations API and removed when done; nothing is kept.
 
 /** A burst of square pixels out of the point (x, y) on the screen, falling as they go. */
 export function burst(x, y, colors, n = 8, px = 4) {
@@ -16,18 +16,4 @@ export function burst(x, y, colors, n = 8, px = 4) {
       { transform: `translate(${dx}px, ${dy + 26}px)`, opacity: 0 },
     ], { duration: 520 + Math.random() * 180, easing: 'cubic-bezier(0.2, 0.7, 0.4, 1)' }).onfinish = () => el.remove();
   }
-}
-
-/** A short word rising from (x, y) and fading: "+1", "3 of 7". */
-export function rise(x, y, text, color = '#2b3bff') {
-  const el = document.createElement('i');
-  el.className = 'px-rise';
-  el.textContent = text;
-  el.style.cssText = `left:${x}px;top:${y}px;color:${color}`;
-  document.body.append(el);
-  el.animate([
-    { transform: 'translate(-50%, 0)', opacity: 0 },
-    { transform: 'translate(-50%, -14px)', opacity: 1, offset: 0.25 },
-    { transform: 'translate(-50%, -34px)', opacity: 0 },
-  ], { duration: 1000, easing: 'ease-out' }).onfinish = () => el.remove();
 }

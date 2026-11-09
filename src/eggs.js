@@ -1,13 +1,13 @@
-// Things to find. None of them is announced where it is (the footer's small print keeps count, hunt.js, and the README
+// Things to find. None of them is announced, on the page or when it is found: each simply does what it does (the README
 // lists them, folded away). Each costs next to nothing until it is found: a listener or two, and anything heavier (the
 // coin rain's canvas, the ink) only when used. More live with what they play with: the signal ping, the clock and the
 // rubber letters in hero.js and hero-play.js, the visitor in birds.js, Logbook's floor in logbook-streaks.js, the
 // marquee and the stickers in sections.js.
 //
-//   the console     a hello for whoever opens the dev tools, with a hint, and `eggs()` for the list
+//   the console     a hello for whoever opens the dev tools, with a hint
 //   leave the tab   its title loses the connection, and comes back online when you do
 //   ↑↑↓↓←→←→ B A    coins rain, and Bug Run's runner turns gold
-//   type "offline"  the page blinks out like a dropped signal... and keeps working, which is the point
+//   type "offline"  the page blinks out like a dropped signal... and comes straight back
 //   type "coo"      a flock crosses the screen with the mail
 //   the name        click its letters and they hop; hop all thirteen
 //   the headings    their letters hop as a mouse brushes over them
@@ -15,7 +15,6 @@
 //   the moon        click it: a shooting star, and the moon moves on a phase
 //   the windows     click the city's windows to switch their lights on and off
 //   NeatInk's page  write on it, or on the tablet, with a mouse or a pen; write enough and it is "converted"
-import { found, table, onAllFound } from './hunt.js';
 import { flyAcross } from './birds.js';
 import { windows } from './scenes/pigeon-city.js';
 
@@ -30,17 +29,11 @@ export function initEggs({ reduced }) {
   if (!reduced) brushHeadings();
   city(reduced);
   inkOnPaper();
-  onAllFound(() => { if (!reduced) { flyAcross(14); coinRain(); } });
 }
 
 function hello() {
   console.log('%cHey, you opened the console 👋', 'font: 700 16px system-ui, sans-serif; color: #2b3bff');
-  console.log('%cThis site is plain JavaScript, GSAP and a lot of scroll. A few things are hidden in it; an old cheat code is a good place to start. Type eggs() to see how you are doing.', 'font: 13px system-ui, sans-serif; color: #434b6b');
-  window.eggs = () => {
-    found('console', '🛠️ <b>Hello, developer.</b> The source is on GitHub, if you’d rather read than hunt.');
-    console.table(table());
-    return 'Found ones by name, the rest by a hint. Good luck.';
-  };
+  console.log('%cThis site is plain JavaScript, GSAP and a lot of scroll. A few things are hidden in it; an old cheat code is a good place to start.', 'font: 13px system-ui, sans-serif; color: #434b6b');
 }
 
 function tabTitle() {
@@ -52,7 +45,6 @@ function tabTitle() {
     else {
       document.title = '✅ Back online';
       back = setTimeout(() => { document.title = title; }, 1800);
-      found('tab', '✅ <b>Back online.</b> Nothing here stopped working while you were away.', 0, true);
     }
   });
 }
@@ -66,7 +58,6 @@ function cheatCode(reduced) {
     if (at < CODE.length) return;
     at = 0;
     try { localStorage.setItem('bugrun-gold', '1'); } catch { /* the runner stays blue */ }
-    found('konami', '<b>Cheat code accepted.</b> Bug Run’s runner is gold now.');
     if (!reduced) coinRain();
   });
 }
@@ -128,11 +119,9 @@ function typed(reduced) {
         html.classList.add('egg-offline'); // the screen stutters out and back (style.css)
         setTimeout(() => html.classList.remove('egg-offline'), 1400);
       }
-      setTimeout(() => found('offline', '📡 <b>No connection.</b> Everything here still works. That’s the whole idea.', 4200), reduced ? 0 : 900);
     } else if (buf.endsWith('coo')) {
       buf = '';
       if (!reduced) flyAcross(9);
-      found('coo', '🕊️ <b>Coo.</b> Message carried. No towers were involved.');
     }
   });
 }
@@ -149,7 +138,6 @@ function hopLetters(reduced) {
     if (hopped.size < chars.length) return;
     hopped.clear();
     if (!reduced) chars.forEach((c, k) => setTimeout(() => { hop(c); c.classList.add('lit'); setTimeout(() => c.classList.remove('lit'), 900); }, k * 55));
-    found('letters', 'All thirteen letters. <b>You’re thorough.</b> I like that in a teammate.');
   }));
 }
 
@@ -211,7 +199,6 @@ function city(reduced) {
     bubble.style.top = `${(r.top - cr.top - 22).toFixed(0)}px`;
     town.append(bubble);
     setTimeout(() => bubble.remove(), 1500);
-    found('poke', '🐦 <b>Poked.</b> They carry messages. They do not carry grudges, luckily.', 0, true);
     return true;
   }
 
@@ -232,7 +219,6 @@ function city(reduced) {
       sky.append(star);
       star.addEventListener('animationend', () => star.remove(), { once: true });
     }
-    found('moon', '🌠 <b>Make a wish.</b> Mine was a stable connection. I stopped waiting for it.');
     return true;
   }
 
@@ -259,7 +245,6 @@ function city(reduced) {
     for (const [a, v] of Object.entries({ x: wx.toFixed(1), y: wy.toFixed(1), width: 7, height: 10, fill: '#ffd98a' })) lampEl.setAttribute(a, v);
     mine.append(lampEl);
     lit.set(best, lampEl);
-    if (lit.size === 5) found('lights', '💡 <b>Somebody’s home.</b> Five windows lit by hand. The grid had nothing to do with it.');
   }
 }
 
@@ -336,7 +321,6 @@ function inkOnPaper() {
     setTimeout(() => el.classList.add('out'), 3400);
     setTimeout(() => el.remove(), 4100);
     kick();
-    found('convert', '<b>Converted.</b> The real app reads your handwriting. This page only flatters it.', 0, true);
   }
 
   back.addEventListener('pointerdown', async (e) => {
@@ -378,7 +362,6 @@ function inkOnPaper() {
     kick();
     clearTimeout(wait);
     wait = setTimeout(convert, 900); // the pen has rested: read what is there, if there is enough of it
-    found('ink', '🖋️ <b>Ink.</b> It fades, like the scene’s own. Write a word or two and let it rest.', 0, true);
   }
   back.addEventListener('pointerup', end);
   back.addEventListener('pointercancel', end);

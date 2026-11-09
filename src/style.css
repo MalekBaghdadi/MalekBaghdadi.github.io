@@ -287,6 +287,9 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
 .rail b + b::after { content: ""; position: absolute; inset: -2px; border: 2px solid var(--blue); border-radius: 50%; opacity: 0; animation: rail-ping 2.6s cubic-bezier(0.2, 0.6, 0.4, 1) infinite paused; }
 .is-live > .rail b + b::after { animation-play-state: running; }
 .reduced .rail b + b::after, .still .rail b + b::after { animation: none; }
+/* a stop on the rail at each entry: a ring until the dot reaches it, then filled */
+.rail u { position: absolute; left: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--concrete); border: 2px solid color-mix(in srgb, var(--ink) 26%, var(--concrete)); transition: background-color 0.25s ease, border-color 0.25s ease, scale 0.35s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.rail u.on { background: var(--blue); border-color: var(--blue); scale: 1.25; }
 @keyframes rail-ping { 0% { opacity: 0.6; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(2.8); } }
 
 .marquee { display: grid; gap: 0.1em; padding-block: clamp(40px, 7vw, 88px) 0; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); overflow: hidden; }
@@ -574,15 +577,7 @@ html:not(.reduced) .scene, html:not(.reduced) .after {
   .reduced .pg-frame { aspect-ratio: 1000 / 760; height: auto; }
 }
 
-/* Easter eggs (eggs.js). The note at the top of the screen they share: */
-.egg-toast {
-  position: fixed; z-index: 95; top: max(14px, env(safe-area-inset-top, 0px)); left: 50%; width: max-content; max-width: min(36rem, calc(100vw - 28px));
-  padding: 0.7rem 1.15rem; border-radius: 22px; background: var(--ink); color: #fff; font-weight: 500; line-height: 1.35; text-align: center; text-wrap: balance;
-  box-shadow: 0 14px 36px rgba(5, 6, 12, 0.35); pointer-events: none; opacity: 0; translate: -50% -150%;
-  transition: translate 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.3s ease;
-}
-.egg-toast.on { opacity: 1; translate: -50% 0; }
-.egg-toast b { color: #ffd23f; }
+/* Easter eggs (eggs.js) */
 .egg-rain { position: fixed; inset: 0; z-index: 94; width: 100vw; height: 100vh; pointer-events: none; }
 /* typing "offline": the screen stutters out like a dropped signal, then comes back */
 html.egg-offline::after {
@@ -610,36 +605,13 @@ html.egg-offline::after {
 .ni-back { pointer-events: auto; cursor: crosshair; -webkit-user-select: none; user-select: none; }
 .ni-scribble { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
 
-/* ---- More to press (hunt.js, birds.js, hero.js, hero-play.js, sections.js, stickers.js, burst.js) ---- */
+/* ---- More to press (birds.js, hero.js, hero-play.js, sections.js, stickers.js, burst.js) ---- */
 
-/* the count a note carries the first time something is found */
-.egg-n { display: block; margin-top: 0.2rem; font-style: normal; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.02em; color: rgba(255, 255, 255, 0.62); }
-
-/* the footer's small print: how far you scrolled, the tally of hidden things, the pigeon back to the top */
-.hunt {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 2rem; margin-top: clamp(40px, 7vw, 88px); padding-top: 1.1rem;
-  border-top: 1px solid rgba(231, 233, 238, 0.16); font-size: 0.92rem; color: color-mix(in srgb, var(--concrete) 70%, transparent);
-}
-.hunt-odo { margin-right: auto; }
-.hunt-odo b { color: var(--concrete); font-weight: 500; }
-.hunt-btn, .hunt-up { padding: 0; font: inherit; color: var(--concrete); background: none; border: 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; -webkit-tap-highlight-color: transparent; }
-.hunt-btn b { color: #ffd23f; }
-.hunt-btn:focus-visible, .hunt-up:focus-visible { outline-color: var(--concrete); }
-@media (hover: hover) { .hunt-btn:hover, .hunt-up:hover { color: #fff; text-decoration-thickness: 2px; } }
-.hunt-log {
-  position: fixed; z-index: 60; right: var(--gutter); bottom: 4.5rem; width: min(40rem, calc(100vw - 2 * var(--gutter))); max-height: min(72svh, 36rem); overflow: auto; overscroll-behavior: contain;
-  padding: 1.2rem 1.4rem 1.3rem; border-radius: 16px; background: var(--concrete); color: var(--ink); box-shadow: 0 0 0 1px rgba(15, 22, 51, 0.12), 0 24px 60px rgba(5, 6, 12, 0.5);
-}
-.hunt-log[hidden] { display: none; }
-.hunt-log p { margin-bottom: 0.8rem; font: 800 1.15rem / 1.1 var(--font-display); font-stretch: 120%; }
-.hunt-log ol { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 2rem; font-size: 0.92rem; line-height: 1.35; }
-.hunt-log li { position: relative; break-inside: avoid; padding: 0.22rem 0 0.22rem 1.5rem; color: var(--ink-2); }
-.hunt-log li::before { content: "?"; position: absolute; left: 0; top: 0.22rem; width: 1.05rem; font-weight: 700; text-align: center; color: color-mix(in srgb, var(--ink) 40%, transparent); }
-.hunt-log li.got { color: var(--ink); font-weight: 700; }
-.hunt-log li.got::before { content: ""; top: 0.62rem; left: 0.2rem; width: 0.6rem; height: 0.6rem; background: var(--blue); }
-.hunt-log li.more { padding-left: 0; font-style: italic; }
-.hunt-log li.more::before { content: none; }
-@media (max-width: 820px) { .hunt-log ol { columns: 1; } .hunt { margin-top: 28px; } }
+/* the footer's last line: the way back to the top, by pigeon (birds.js) */
+.to-top { margin-top: clamp(40px, 7vw, 88px); font-size: 0.92rem; }
+.to-top :is(a, button) { padding: 0; font: inherit; color: color-mix(in srgb, var(--concrete) 78%, transparent); background: none; border: 0; cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; -webkit-tap-highlight-color: transparent; }
+.to-top :is(a, button):focus-visible { outline-color: var(--concrete); }
+@media (hover: hover) { .to-top :is(a, button):hover { color: #fff; } }
 
 /* pigeons out of their scene (birds.js): the Pigeon scene's bird, on a layer over the page */
 .birds { position: fixed; inset: 0; z-index: 92; overflow: hidden; pointer-events: none; }
@@ -739,6 +711,27 @@ html:not(.reduced) .marquee.held { cursor: grabbing; }
 @keyframes runner-hop { 45% { translate: 0 -26px; } }
 @keyframes runner-bump { 40% { translate: 0 -7px; } }
 
-/* burst.js: loose pixels, and a word that floats up */
-.px-bit, .px-rise { position: fixed; z-index: 96; pointer-events: none; }
-.px-rise { font: 800 0.82rem / 1 var(--font-display); font-style: normal; font-stretch: 115%; white-space: nowrap; }
+/* burst.js: loose pixels */
+.px-bit { position: fixed; z-index: 96; pointer-events: none; }
+
+/* ---- The CV's background and details (sections.js) ---- */
+
+/* each entry's year, large and faint behind it: an outline in the display face, like the marquee's second row */
+.entry { isolation: isolate; }
+.ghost {
+  position: absolute; z-index: -1; right: 0; top: -0.14em; font: 800 clamp(7rem, 4rem + 13vw, 15rem) / 0.8 var(--font-display); font-style: normal; letter-spacing: -0.02em; white-space: nowrap;
+  color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--ink) 9%, transparent); pointer-events: none; -webkit-user-select: none; user-select: none;
+}
+@media (max-width: 820px) { .ghost { top: 1.6rem; font-size: 6.2rem; -webkit-text-stroke-color: color-mix(in srgb, var(--ink) 7%, transparent); } }
+
+/* Education, counted in squares, as Logbook counts days */
+.terms { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 1rem; }
+.terms i { width: 12px; height: 12px; background: color-mix(in srgb, var(--ink) 11%, transparent); transition: background-color 0.3s ease, scale 0.35s cubic-bezier(0.3, 1.7, 0.5, 1); }
+.terms i.on { background: var(--blue); }
+.terms i.on:nth-of-type(3n) { background: color-mix(in srgb, var(--blue) 62%, var(--concrete)); }
+.terms i.on:nth-of-type(4n + 1) { background: color-mix(in srgb, var(--blue) 80%, var(--concrete)); }
+.terms span { margin-left: 0.55rem; color: var(--ink-2); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.terms b { display: inline-block; min-width: 1.2ch; color: var(--ink); text-align: right; }
+
+/* the count beside each group of skills */
+.skills dt sup { position: absolute; margin-left: 0.35em; /* out of the flow: the label keeps its line */ color: var(--blue); font-size: 0.72em; font-weight: 700; font-variant-numeric: tabular-nums; vertical-align: 0.5em; line-height: 0; }

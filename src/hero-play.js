@@ -7,7 +7,6 @@
 //                    has depth. They move on the `translate` property, through two CSS variables the float animation
 //                    reads too (style.css), so nothing here touches the transform the scroll owns.
 import { gsap } from 'gsap';
-import { found } from './hunt.js';
 
 export function initHeroPlay({ hero, name, chars, trio, squeezed, reduced }) {
   if (reduced) return;
@@ -31,7 +30,7 @@ function rubber(name, chars, squeezed) {
     const reach = parseFloat(getComputedStyle(name).fontSize) * 0.95;
     // how much of the pull each letter takes: all of it for the one held, less with distance
     const give = at.map(([x, y]) => Math.exp(-(((x - at[i][0]) ** 2 + (y - at[i][1]) ** 2) / reach ** 2)));
-    grab = { id: e.pointerId, x: e.clientX, y: e.clientY, give, reach, far: 0, moved: false };
+    grab = { id: e.pointerId, x: e.clientX, y: e.clientY, give, reach, moved: false };
   });
   name.addEventListener('pointermove', (e) => {
     if (!grab || e.pointerId !== grab.id) return;
@@ -44,7 +43,6 @@ function rubber(name, chars, squeezed) {
       gsap.killTweensOf(off);
       for (const c of chars) c.classList.remove('hop');
     }
-    grab.far = Math.max(grab.far, d);
     const k = 1 / (1 + d / (grab.reach * 2.4)); // rubber: the further it is pulled, the harder it pulls back
     off.forEach((o, j) => { o.x = dx * k * grab.give[j]; o.y = dy * k * grab.give[j]; });
     draw();
@@ -58,7 +56,6 @@ function rubber(name, chars, squeezed) {
     dragged = true; // the click that follows a pull is not a hop
     setTimeout(() => { dragged = false; }, 0);
     off.forEach((o, j) => gsap.to(o, { x: 0, y: 0, duration: 1.1, delay: (1 - g.give[j]) * 0.09, ease: 'elastic.out(1.1, 0.3)', onUpdate: draw }));
-    if (g.far > 60) found('rubber', '<b>Rubber letters.</b> Pull as hard as you like, they know where they live.');
   };
   name.addEventListener('pointerup', letGo);
   name.addEventListener('pointercancel', letGo);
